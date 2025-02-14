@@ -156,20 +156,19 @@ def search_hotels(destination):
     return hotels if hotels else ["⚠️ No hotels found."]
 
 # Function to generate activity descriptions using OpenAI (Now supports multiple languages)
-# Function to generate activity descriptions using OpenAI
 def get_activity_descriptions(destination):
     """Fetches recommended activities from OpenAI in the selected language."""
     lang = st.session_state.language
     prompt = f"""
-    Provide a list of 3 recommended activities for a traveler visiting {destination}.
-    Each activity should have a clear title followed by a short engaging description.
+Provide a list of 3 recommended activities for a traveler visiting {destination}.
+Each activity should have a clear title followed by a short engaging description.
 
-    Format it exactly like this:
+Format it exactly like this:
 
-    Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
+Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
 
-    Respond in {selected_language}.
-    """
+Respond in {lang}.
+"""
 
     try:
         client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -228,7 +227,8 @@ if st.button(TRANSLATIONS[lang]["search_button"]):
         # Fetch results and store in session state
         st.session_state.flights = search_flights(destination, start_date, end_date)
         st.session_state.hotels = search_hotels(destination)
-
+        st.session_state.activities = get_activity_descriptions(destination)  
+        
 # Display results only if they exist in session state
 if "flights" in st.session_state:
     st.subheader(TRANSLATIONS[lang]["flights"])
@@ -239,6 +239,13 @@ if "hotels" in st.session_state:
     st.subheader(TRANSLATIONS[lang]["hotels"])
     for hotel in st.session_state.hotels:
         st.markdown(f"- {hotel}")
+        
+# Display activities
+if "activities" in st.session_state:
+    st.subheader(TRANSLATIONS[lang]["activities"])
+    for title, description in st.session_state.activities:
+        st.markdown(f"**{title}**")
+        st.write(description)
 
 if st.session_state.show_consultation:
     st.subheader(TRANSLATIONS[lang]["consultation"])
