@@ -10,11 +10,11 @@ import openai
 import requests
 import googleapiclient.discovery
 
-# Load OpenAI API Key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Load API keys
+openai_api_key = st.secrets["OPENAI_API_KEY"]
 
-# Load credentials from Streamlit Secrets
-creds_dict = st.secrets["google_sheets"]  # ✅ No need for json.loads()
+# Load Google Sheets credentials and convert AttrDict to a normal dictionary
+creds_dict = dict(st.secrets["google_sheets"])
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -26,6 +26,13 @@ SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
 
 st.write("✅ Successfully connected to Google Sheets!")
+
+# Test appending a row to check if it works
+try:
+    sheet.append_row(["Test Name", "Test Contact", "Test Destination", "2025-03-15", "2025-03-25", "2"])
+    st.write("✅ Test data inserted successfully!")
+except Exception as e:
+    st.error(f"⚠️ Error inserting test data: {e}")
 
 # Initialize session state
 if "show_consultation" not in st.session_state:
