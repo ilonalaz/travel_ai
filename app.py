@@ -8,6 +8,7 @@ from duckduckgo_search import DDGS
 from dotenv import load_dotenv
 import openai  
 import requests
+import googleapiclient.discovery
 
 # Load environment variables
 load_dotenv()
@@ -62,8 +63,6 @@ def search_hotels(destination):
     return hotels if hotels else ["⚠️ No hotels found."]
 
 # Function to generate activity descriptions using OpenAI
-import googleapiclient.discovery
-
 def get_google_image(query):
     """Fetch an image URL from Google Custom Search API"""
     API_KEY = st.secrets["GOOGLE_SEARCH_API_KEY"]  # Add to Streamlit Secrets
