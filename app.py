@@ -1,15 +1,38 @@
 import os
 import csv
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
 from duckduckgo_search import DDGS
 from dotenv import load_dotenv
 import openai  
+import requests
 
 # Load environment variables
 load_dotenv()
 
 # Set OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Load credentials from Streamlit Secrets
+creds_json = st.secrets["google_sheets"]
+creds_dict = json.loads(creds_json)
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+client = gspread.authorize(creds)
+
+# Open the Google Sheet (replace with your actual sheet name)
+SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Replace with your actual ID
+sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Open first sheet
+
+def save_request(name, contact, destination, start_date, end_date, num_people):
+    """Saves travel request to Google Sheets instead of CSV."""
+    try:
+        sheet.append_row([name, contact, destination, start_date, end_date, num_people])
+        st.success("✅ Your travel request has been saved to Google Sheets!")
+    except Exception as e:
+        st.error(f"⚠️ Error saving to Google Sheets: {e}")
 
 # Initialize session state
 if "show_consultation" not in st.session_state:
@@ -33,12 +56,12 @@ def search_hotels(destination):
 
 # Function to generate activity descriptions using OpenAI
 def get_activity_descriptions(destination):
-    """Fetches recommended activities from OpenAI, cleaning up the output for better formatting."""
+    """Fetches recommended activities from OpenAI and finds related images."""
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
-    Each activity should have a clear title followed by a concise description.
+    Each activity should have a clear title followed by a short engaging description.
     
-    Format it exactly like this (without numbering or extra labels):
+    Format it exactly like this:
     
     Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
     """
@@ -54,16 +77,18 @@ def get_activity_descriptions(destination):
         )
         
         activities = response.choices[0].message.content.strip().split("\n")
-        
         formatted_activities = []
+
         for activity in activities:
-            if ":" in activity:  # Ensure correct title-description split
+            if ":" in activity:
                 title, description = activity.split(":", 1)
-                formatted_activities.append(f"**{title.strip()}**<br>{description.strip()}")
-        
+                # Fetch image from Unsplash (or use Google Image Search)
+                image_url = f"https://source.unsplash.com/400x300/?{title.strip().replace(' ', '%20')}"
+                formatted_activities.append((title.strip(), description.strip(), image_url))
+
         return formatted_activities
     except Exception as e:
-        return [f"⚠️ Could not fetch activity recommendations. Error: {str(e)}"]
+        return [("⚠️ Error", str(e), "")]
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
@@ -109,8 +134,10 @@ if st.button("🔍 Search for Flights & Hotels"):
         st.subheader("🎡 Recommended Activities:")
         activities = get_activity_descriptions(destination)
         
-        for activity in activities:
-            st.markdown(f"{activity}<br>", unsafe_allow_html=True)
+        for title, description, image_url in activities:
+            st.markdown(f"**{title}**")
+            st.write(description)
+            st.image(image_url, caption=title, use_column_width=True)
 
         # Show consultation button
         st.session_state.show_consultation = True
