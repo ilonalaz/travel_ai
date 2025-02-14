@@ -24,12 +24,9 @@ client = gspread.authorize(creds)
 SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
 
-st.write("✅ Successfully connected to Google Sheets!")
-
 # Test appending a row to check if it works
 try:
     sheet.append_row(["Test Name", "Test Contact", "Test Destination", "2025-03-15", "2025-03-25", "2"])
-    st.write("✅ Test data inserted successfully!")
 except Exception as e:
     st.error(f"⚠️ Error inserting test data: {e}")
 
