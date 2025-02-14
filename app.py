@@ -32,7 +32,7 @@ if "show_consultation" not in st.session_state:
 if "language" not in st.session_state:
     st.session_state.language = "en"
 
-# Define language options
+# Define language options at the very top
 LANGUAGES = {
     "English": "en",
     "Deutsch (German)": "de",
@@ -40,6 +40,10 @@ LANGUAGES = {
     "Русский (Russian)": "ru",
     "Română (Romanian)": "ro"
 }
+
+# Initialize session state for language selection
+if "language" not in st.session_state:
+    st.session_state.language = "en"
 
 # Language selection dropdown
 selected_language = st.selectbox("🌍 Choose your language:", list(LANGUAGES.keys()))
@@ -158,19 +162,6 @@ def search_hotels(destination):
 # Function to generate activity descriptions using OpenAI (Now supports multiple languages)
 def get_activity_descriptions(destination):
     """Fetches recommended activities from OpenAI in the selected language."""
-    lang = st.session_state.language
-
-    # Define language mapping for OpenAI response
-    language_names = {
-        "en": "English",
-        "de": "German",
-        "uk": "Ukrainian",
-        "ru": "Russian",
-        "ro": "Romanian"
-    }
-
-    prompt_language = language_names.get(lang, "English")  # Default to English if missing
-
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
     Each activity should have a clear title followed by a short engaging description.
