@@ -202,7 +202,6 @@ def get_activity_descriptions(destination):
         )
 
         activities_text = response.choices[0].message.content.strip()
-        st.write(f"DEBUG: OpenAI Response:\n{activities_text}")  # Debugging output
 
         activities_list = activities_text.split("\n")
         formatted_activities = []
