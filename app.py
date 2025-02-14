@@ -13,15 +13,19 @@ import googleapiclient.discovery
 # Load OpenAI API Key
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Load Google Sheets credentials from Streamlit Secrets
-creds_dict = st.secrets["google_sheets"]  
+# Load credentials from Streamlit Secrets
+creds_dict = st.secrets["google_sheets"]  # ✅ No need for json.loads()
+
+# Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# Open Google Sheet
+# Open Google Sheet by ID
 SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
-sheet = client.open_by_key(SPREADSHEET_ID).sheet1 
+sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
+
+st.write("✅ Successfully connected to Google Sheets!")
 
 # Initialize session state
 if "show_consultation" not in st.session_state:
