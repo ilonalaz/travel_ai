@@ -183,7 +183,7 @@ def get_activity_descriptions(destination):
 
     Format it exactly like this:
 
-    Title: A compelling and informative description of the activity, explaining what makes it special, what visitors can experience, and why it is recommended.
+    Activity Title: A compelling and informative description of the activity, explaining what makes it special, what visitors can experience, and why it is recommended.
 
     Do not include the words 'Activity Title' in your response.
 
@@ -213,10 +213,11 @@ def get_activity_descriptions(destination):
                 title = title.strip().replace("Activity Title", "").replace("Title", "").strip()  # Remove unwanted words
                 formatted_activities.append((title, description.strip()))
 
-        return formatted_activities
+        return formatted_activities if formatted_activities else [("⚠️ No activities found", "Try again later.")]
     except Exception as e:
         st.error(f"⚠️ OpenAI Error: {e}")
         return [("⚠️ Error", str(e))]
+
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
@@ -248,8 +249,15 @@ if st.button(TRANSLATIONS[lang]["search_button"]):
         # Fetch results and store in session state
         st.session_state.flights = search_flights(destination, start_date, end_date)
         st.session_state.hotels = search_hotels(destination)
-        st.session_state.activities = get_activity_descriptions(destination)  
-        st.session_state.show_consultation = True
+
+        activities = get_activity_descriptions(destination)  # ✅ Fetch activities
+
+        if activities:  # ✅ Ensure activities exist before storing
+            st.session_state.activities = activities
+        else:
+            st.session_state.activities = [("⚠️ No activities found", "Try again later.")]
+        
+        st.session_state.show_consultation = True  # ✅ Ensure consultation appears
         
 # Display results only if they exist in session state
 if "flights" in st.session_state:
@@ -262,13 +270,17 @@ if "hotels" in st.session_state:
     for hotel in st.session_state.hotels:
         st.markdown(f"- {hotel}")
         
-# Display activities only if they exist and are not empty
+# Display activities only if they exist
 if "activities" in st.session_state and st.session_state.activities:
     st.subheader(TRANSLATIONS[lang]["activities"])
-    for title, description in st.session_state.activities:
-        if title and description:  # Ensure both values exist
-            st.markdown(f"**{title}**")  # Display the activity title in bold
-            st.write(description)  # Show the description
+    
+    for activity in st.session_state.activities:
+        if len(activity) == 2:  # Ensure there are both a title and description
+            title, description = activity
+            st.markdown(f"### {title}")  # ✅ Use markdown to make title prominent
+            st.write(description)
+        else:
+            st.warning("⚠️ Activity data is incorrectly formatted.")
 else:
     st.warning("⚠️ No activities found. Try again!")
 
