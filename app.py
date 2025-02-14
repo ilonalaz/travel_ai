@@ -13,7 +13,7 @@ import googleapiclient.discovery
 # Load API keys
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 
-creds_dict = dict(st.secrets["google_sheets"])  # ✅ Convert directly to a dictionary
+creds_dict = dict(st.secrets["google_sheets"])  
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -179,11 +179,11 @@ def get_activity_descriptions(destination):
 
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
-    Each activity should have a clear title followed by a short engaging description.
+    Each activity should have a clear title followed by a short, engaging description (no more than 2 sentences).
 
     Format it exactly like this:
 
-    Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
+    Activity Title: A brief, engaging description (2 sentences max) about what makes this activity special.
 
     Respond in {prompt_language}.
     """
@@ -196,11 +196,10 @@ def get_activity_descriptions(destination):
                 {"role": "system", "content": "You are a travel expert providing recommendations."},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=300,
+            max_tokens=600,
         )
 
         activities_text = response.choices[0].message.content.strip()
-        st.write(f"DEBUG: OpenAI Response:\n{activities_text}")  # Debugging output
 
         activities_list = activities_text.split("\n")
         formatted_activities = []
