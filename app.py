@@ -25,6 +25,12 @@ client = gspread.authorize(creds)
 # Open the Google Sheet (replace with your actual sheet name)
 SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
+try:
+    SPREADSHEET_ID = "1AbCDefGhIjKLmnopQRStuvWXYz123456789"  # Replace with your ID
+    sheet = client.open_by_key(SPREADSHEET_ID).sheet1
+    print("✅ Successfully connected to Google Sheets!")  # Debug message
+except Exception as e:
+    print(f"❌ Google Sheets Permission Error: {e}")  # Show full error message
 
 def save_request(name, contact, destination, start_date, end_date, num_people):
     """Saves travel request to Google Sheets instead of CSV."""
