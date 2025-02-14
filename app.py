@@ -13,8 +13,8 @@ import googleapiclient.discovery
 # Load API keys
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 
-# Load credentials from Streamlit Secrets
-creds_dict = st.secrets["google_sheets"]  # ✅ Directly use it
+import json
+creds_dict = json.loads(st.secrets["google_sheets"].to_json())  # ✅ Convert AttrDict to a proper JSON string, then load it as a dict
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
