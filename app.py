@@ -28,15 +28,6 @@ sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 if "show_consultation" not in st.session_state:
     st.session_state.show_consultation = False
 
-# Language options
-LANGUAGES = {
-    "English": "en",
-    "Deutsch (German)": "de",
-    "Українська (Ukrainian)": "uk",
-    "Русский (Russian)": "ru",
-    "Română (Romanian)": "ro"
-}
-
 # Default language session state
 if "language" not in st.session_state:
     st.session_state.language = "en"
@@ -159,16 +150,28 @@ def search_hotels(destination):
 def get_activity_descriptions(destination):
     """Fetches recommended activities from OpenAI in the selected language."""
     lang = st.session_state.language
+
+    # Define language mapping for OpenAI response
+    language_names = {
+        "en": "English",
+        "de": "German",
+        "uk": "Ukrainian",
+        "ru": "Russian",
+        "ro": "Romanian"
+    }
+
+    prompt_language = language_names.get(lang, "English")  # Default to English if missing
+
     prompt = f"""
-Provide a list of 3 recommended activities for a traveler visiting {destination}.
-Each activity should have a clear title followed by a short engaging description.
+    Provide a list of 3 recommended activities for a traveler visiting {destination}.
+    Each activity should have a clear title followed by a short engaging description.
 
-Format it exactly like this:
+    Format it exactly like this:
 
-Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
+    Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
 
-Respond in {lang}.
-"""
+    Respond in {prompt_language}.
+    """
 
     try:
         client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -182,7 +185,7 @@ Respond in {lang}.
         )
 
         activities_text = response.choices[0].message.content.strip()
-        st.write(f"DEBUG: OpenAI Response:\n{activities_text}")  # Debugging
+        st.write(f"DEBUG: OpenAI Response:\n{activities_text}")  # Debugging output
 
         activities_list = activities_text.split("\n")
         formatted_activities = []
@@ -196,6 +199,7 @@ Respond in {lang}.
     except Exception as e:
         st.error(f"⚠️ OpenAI Error: {e}")
         return [("⚠️ Error", str(e))]
+
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
@@ -228,6 +232,7 @@ if st.button(TRANSLATIONS[lang]["search_button"]):
         st.session_state.flights = search_flights(destination, start_date, end_date)
         st.session_state.hotels = search_hotels(destination)
         st.session_state.activities = get_activity_descriptions(destination)  
+        st.session_state.show_consultation = True
         
 # Display results only if they exist in session state
 if "flights" in st.session_state:
@@ -255,6 +260,6 @@ if st.session_state.show_consultation:
     if st.button(TRANSLATIONS[lang]["submit"]):
         if name and contact:
             save_request(name, contact, destination, start_date, end_date, num_people)
-            st.session_state.show_consultation = False
+            st.session_state.show_consultation = False  # Hide form after submitting
         else:
             st.warning("⚠️ Please enter your name and contact details.")
