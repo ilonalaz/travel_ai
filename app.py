@@ -100,16 +100,25 @@ def get_activity_descriptions(destination):
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
-    file_path = "travel_requests.csv"
-    file_exists = os.path.isfile(file_path)
+    """Saves travel request to Google Sheets instead of CSV."""
+    try:
+        # Open the Google Sheet
+        sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
 
-    with open(file_path, mode="a", newline="") as file:
-        writer = csv.writer(file)
-        if not file_exists:
-            writer.writerow(["Name", "Contact", "Destination", "Start Date", "End Date", "People"])
-        writer.writerow([name, contact, destination, start_date, end_date, num_people])
+        # Get existing data
+        existing_data = sheet.get_all_values()
 
-    st.success("✅ Your travel request has been saved! Our agent will contact you soon.")
+        # If sheet is empty, add headers
+        if not existing_data:
+            sheet.append_row(["Name", "Contact", "Destination", "Start Date", "End Date", "People"])
+
+        # Append the new travel request data
+        sheet.append_row([name, contact, destination, start_date, end_date, num_people])
+
+        st.success("✅ Your travel request has been saved to Google Sheets!")
+
+    except Exception as e:
+        st.error(f"⚠️ Error saving to Google Sheets: {e}")  # Log any error
 
 # Streamlit App UI
 st.title("🌍 Travel Planner Chatbot ✈️")
