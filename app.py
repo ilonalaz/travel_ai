@@ -143,6 +143,9 @@ TRANSLATIONS = {
 def search_flights(destination, start_date, end_date):
     query = f"Best flights to {destination} from {start_date} to {end_date}"
     results = DDGS().text(query, max_results=3)
+
+    st.write(f"DEBUG: Flight search query: {query}")  # Debugging
+    st.write(f"DEBUG: Flight search results: {results}")  # Debugging
     
     flights = [f"✈️ [{result['title']}]({result['href']})" for result in results]
     return flights if flights else ["⚠️ No flights found."]
@@ -151,6 +154,9 @@ def search_flights(destination, start_date, end_date):
 def search_hotels(destination):
     query = f"Cheapest hotels in {destination} for 2 people"
     results = DDGS().text(query, max_results=3)
+
+    st.write(f"DEBUG: Hotel search query: {query}")  # Debugging
+    st.write(f"DEBUG: Hotel search results: {results}")  # Debugging
     
     hotels = [f"🏨 [{result['title']}]({result['href']})" for result in results]
     return hotels if hotels else ["⚠️ No hotels found."]
