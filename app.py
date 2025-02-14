@@ -221,16 +221,26 @@ num_people = st.number_input("👥 Number of people", min_value=1, step=1)
 
 if st.button(TRANSLATIONS[lang]["search_button"]):
     if destination and start_date and end_date:
-        st.subheader(TRANSLATIONS[lang]["activities"])
-        activities = get_activity_descriptions(destination)
-        
-        for title, description in activities:
-            st.markdown(f"**{title}**")
-            st.write(description)
+        # Store inputs in session state
+        st.session_state.destination = destination
+        st.session_state.start_date = start_date
+        st.session_state.end_date = end_date
+        st.session_state.num_people = num_people
 
-        st.session_state.show_consultation = True
-    else:
-        st.warning("⚠️ Please enter all required details before searching.")
+        # Fetch results and store in session state
+        st.session_state.flights = search_flights(destination, start_date, end_date)
+        st.session_state.hotels = search_hotels(destination)
+
+# Display results only if they exist in session state
+if "flights" in st.session_state:
+    st.subheader(TRANSLATIONS[lang]["flights"])
+    for flight in st.session_state.flights:
+        st.markdown(f"- {flight}")
+
+if "hotels" in st.session_state:
+    st.subheader(TRANSLATIONS[lang]["hotels"])
+    for hotel in st.session_state.hotels:
+        st.markdown(f"- {hotel}")
 
 if st.session_state.show_consultation:
     st.subheader(TRANSLATIONS[lang]["consultation"])
