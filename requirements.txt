@@ -5,3 +5,4 @@ streamlit==1.42.0
 streamlit-chat
 gspread 
 oauth2client
+google-api-python-client
