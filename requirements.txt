@@ -3,4 +3,5 @@ openai==1.63.0
 python-dotenv==1.0.1
 streamlit==1.42.0
 streamlit-chat
-gspread oauth2client
+gspread 
+oauth2client
