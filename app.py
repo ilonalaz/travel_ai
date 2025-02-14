@@ -16,7 +16,7 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Load credentials from Streamlit Secrets
-creds_dict = json.loads(st.secrets["google_sheets"])
+creds_dict = st.secrets["google_sheets"]
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
