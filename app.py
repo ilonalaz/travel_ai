@@ -24,12 +24,6 @@ client = gspread.authorize(creds)
 SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
 
-# Test appending a row to check if it works
-try:
-    sheet.append_row(["Test Name", "Test Contact", "Test Destination", "2025-03-15", "2025-03-25", "2"])
-except Exception as e:
-    st.error(f"⚠️ Error inserting test data: {e}")
-
 # Initialize session state
 if "show_consultation" not in st.session_state:
     st.session_state.show_consultation = False
