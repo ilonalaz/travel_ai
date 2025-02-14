@@ -16,30 +16,17 @@ load_dotenv()
 # Set OpenAI API Key
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Load credentials from Streamlit Secrets
-creds_dict = st.secrets["google_sheets"]
+# Load Google Sheets credentials from Streamlit Secrets
+creds_dict = json.loads(st.secrets["google_sheets"])
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# Open Google Sheet by ID
-SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Your actual sheet ID
+# Google Sheets ID (Ensure this matches your sheet)
+SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
 sheet = client.open_by_key(SPREADSHEET_ID).sheet1
-try:
-    sheet = client.open_by_key(SPREADSHEET_ID).sheet1
-    st.write("✅ Successfully connected to Google Sheets!")
-except Exception as e:
-    st.error(f"❌ Google Sheets Connection Error: {e}")
-
-def save_request(name, contact, destination, start_date, end_date, num_people):
-    """Saves travel request to Google Sheets instead of CSV."""
-    try:
-        sheet.append_row([name, contact, destination, start_date, end_date, num_people])
-        st.success("✅ Your travel request has been saved to Google Sheets!")
-    except Exception as e:
-        st.error(f"⚠️ Error saving to Google Sheets: {e}")
 
 # Initialize session state
 if "show_consultation" not in st.session_state:
@@ -99,30 +86,13 @@ def get_activity_descriptions(destination):
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
-    """Saves travel request to Google Sheets instead of CSV."""
+    """Saves travel request to Google Sheets"""
     try:
-        # Open the Google Sheet
-        sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
-
-        # Debugging: Print sheet data before inserting
-        existing_data = sheet.get_all_values()
-        print("✅ Existing Data in Sheet BEFORE Insert:", existing_data)  # Debugging log
-
-        # If sheet is empty, add headers
-        if not existing_data:
-            sheet.append_row(["Name", "Contact", "Destination", "Start Date", "End Date", "People"])
-            print("✅ Headers added to the sheet")  # Debugging log
-
-        # Append new data
         sheet.append_row([name, contact, destination, start_date, end_date, num_people])
-        print("✅ Data successfully added to Google Sheets!")  # Debugging log
-
         st.success("✅ Your travel request has been saved to Google Sheets!")
-
     except Exception as e:
-        print(f"⚠️ Error saving to Google Sheets: {e}")  # Debugging log
-        st.error(f"⚠️ Error saving to Google Sheets: {e}")  # Show error in Streamlit
-
+        st.error(f"⚠️ Error saving to Google Sheets: {e}")
+        
 # Streamlit App UI
 st.title("🌍 Travel Planner Chatbot ✈️")
 st.write("Plan your trip, find flights, hotels, and activities effortlessly!")
