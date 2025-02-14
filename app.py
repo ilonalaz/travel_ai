@@ -63,25 +63,12 @@ def search_hotels(destination):
     return hotels if hotels else ["⚠️ No hotels found."]
 
 # Function to generate activity descriptions using OpenAI
-def get_google_image(query):
-    """Fetch an image URL from Google Custom Search API"""
-    API_KEY = st.secrets["GOOGLE_SEARCH_API_KEY"]  # Add to Streamlit Secrets
-    SEARCH_ENGINE_ID = st.secrets["GOOGLE_CSE_ID"]  # Add to Streamlit Secrets
-
-    service = googleapiclient.discovery.build("customsearch", "v1", developerKey=API_KEY)
-    
-    try:
-        res = service.cse().list(q=query, cx=SEARCH_ENGINE_ID, searchType="image", num=1).execute()
-        return res["items"][0]["link"]  # Return first image
-    except Exception:
-        return "https://via.placeholder.com/400x300.png?text=Image+Not+Found"  # Fallback image
-
 def get_activity_descriptions(destination):
-    """Fetches recommended activities from OpenAI and finds related images."""
+    """Fetches recommended activities from OpenAI without images."""
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
     Each activity should have a clear title followed by a short engaging description.
-
+    
     Format it exactly like this:
     
     Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
@@ -105,15 +92,11 @@ def get_activity_descriptions(destination):
         for activity in activities_list:
             if ":" in activity:
                 title, description = activity.split(":", 1)
-
-                # Fetch image from Google Custom Search
-                image_url = get_google_image(title.strip())
-                
-                formatted_activities.append((title.strip(), description.strip(), image_url))
+                formatted_activities.append((title.strip(), description.strip()))
 
         return formatted_activities
     except Exception as e:
-        return [("⚠️ Error", str(e), "")]
+        return [("⚠️ Error", str(e))]
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
@@ -159,10 +142,9 @@ if st.button("🔍 Search for Flights & Hotels"):
         st.subheader("🎡 Recommended Activities:")
         activities = get_activity_descriptions(destination)
         
-        for title, description, image_url in activities:
+        for title, description in activities:
             st.markdown(f"**{title}**")
             st.write(description)
-            st.image(image_url, caption=title, use_container_width=True)
 
         # Show consultation button
         st.session_state.show_consultation = True
