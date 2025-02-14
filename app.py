@@ -2,6 +2,7 @@ import os
 import csv
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import json
 import streamlit as st
 from duckduckgo_search import DDGS
 from dotenv import load_dotenv
@@ -14,23 +15,17 @@ load_dotenv()
 # Set OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Load Google Sheets credentials directly from Streamlit Secrets
-creds_dict = st.secrets["google_sheets"]
+# Load credentials from Streamlit Secrets
+creds_dict = json.loads(st.secrets["google_sheets"])
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# Open the Google Sheet (replace with your actual sheet name)
-SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
-sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
-try:
-    SPREADSHEET_ID = "1AbCDefGhIjKLmnopQRStuvWXYz123456789"  # Replace with your ID
-    sheet = client.open_by_key(SPREADSHEET_ID).sheet1
-    print("✅ Successfully connected to Google Sheets!")  # Debug message
-except Exception as e:
-    print(f"❌ Google Sheets Permission Error: {e}")  # Show full error message
+# Open Google Sheet by ID
+SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Your actual sheet ID
+sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 
 def save_request(name, contact, destination, start_date, end_date, num_people):
     """Saves travel request to Google Sheets instead of CSV."""
