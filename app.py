@@ -162,6 +162,21 @@ def search_hotels(destination):
 # Function to generate activity descriptions using OpenAI (Now supports multiple languages)
 def get_activity_descriptions(destination):
     """Fetches recommended activities from OpenAI in the selected language."""
+    
+    lang = st.session_state.language  # Get selected language from session state
+
+    # Define mapping from language codes to OpenAI-supported language names
+    language_names = {
+        "en": "English",
+        "de": "German",
+        "uk": "Ukrainian",
+        "ru": "Russian",
+        "ro": "Romanian"
+    }
+
+    # Ensure we have a valid language, default to English
+    prompt_language = language_names.get(lang, "English")  
+
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
     Each activity should have a clear title followed by a short engaging description.
@@ -199,7 +214,6 @@ def get_activity_descriptions(destination):
     except Exception as e:
         st.error(f"⚠️ OpenAI Error: {e}")
         return [("⚠️ Error", str(e))]
-
 
 # Function to save requests
 def save_request(name, contact, destination, start_date, end_date, num_people):
