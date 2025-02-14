@@ -93,7 +93,7 @@ def get_activity_descriptions(destination):
 def save_request(name, contact, destination, start_date, end_date, num_people):
     """Saves travel request to Google Sheets"""
     try:
-        sheet.append_row([name, contact, destination, start_date, end_date, num_people])
+        sheet.append_row([name, contact, destination, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), num_people])
         st.success("✅ Your travel request has been saved to Google Sheets!")
     except Exception as e:
         st.error(f"⚠️ Error saving to Google Sheets: {e}")
