@@ -267,10 +267,11 @@ if "activities" in st.session_state and st.session_state.activities:
     st.subheader(TRANSLATIONS[lang]["activities"])
     for title, description in st.session_state.activities:
         if title and description:  # Ensure both values exist
-            st.markdown(f"**{title}**")
-            st.write(description)
+            st.markdown(f"**{title}**")  # Display the activity title in bold
+            st.write(description)  # Show the description
 else:
     st.warning("⚠️ No activities found. Try again!")
+
 
 if "show_consultation" not in st.session_state:
     st.session_state.show_consultation = False
