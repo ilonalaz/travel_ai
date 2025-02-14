@@ -14,17 +14,17 @@ load_dotenv()
 # Set OpenAI API Key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Load credentials from Streamlit Secrets
-creds_json = st.secrets["google_sheets"]
-creds_dict = json.loads(creds_json)
+# Load Google Sheets credentials directly from Streamlit Secrets
+creds_dict = st.secrets["google_sheets"]
 
+# Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Open the Google Sheet (replace with your actual sheet name)
-SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Replace with your actual ID
-sheet = client.open_by_key(SPREADSHEET_ID).sheet1  # Open first sheet
+SPREADSHEET_ID = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"
+sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
 
 def save_request(name, contact, destination, start_date, end_date, num_people):
     """Saves travel request to Google Sheets instead of CSV."""
