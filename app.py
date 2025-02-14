@@ -179,11 +179,13 @@ def get_activity_descriptions(destination):
 
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
-    Each activity should have a clear title followed by a short, engaging description (no more than 2 sentences).
+    Each activity should have a clear title (without the words 'Activity Title') followed by a detailed yet concise description.
 
     Format it exactly like this:
 
-    Activity Title: A brief, engaging description (2 sentences max) about what makes this activity special.
+    Title: A compelling and informative description of the activity, explaining what makes it special, what visitors can experience, and why it is recommended.
+
+    Do not include the words 'Activity Title' in your response.
 
     Respond in {prompt_language}.
     """
@@ -196,10 +198,11 @@ def get_activity_descriptions(destination):
                 {"role": "system", "content": "You are a travel expert providing recommendations."},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=600,
+            max_tokens=800,  # Increased from 600 to prevent truncation
         )
 
         activities_text = response.choices[0].message.content.strip()
+        st.write(f"DEBUG: OpenAI Response:\n{activities_text}")  # Debugging output
 
         activities_list = activities_text.split("\n")
         formatted_activities = []
@@ -207,7 +210,8 @@ def get_activity_descriptions(destination):
         for activity in activities_list:
             if ":" in activity:
                 title, description = activity.split(":", 1)
-                formatted_activities.append((title.strip(), description.strip()))
+                title = title.strip().replace("Activity Title", "").replace("Title", "").strip()  # Remove unwanted words
+                formatted_activities.append((title, description.strip()))
 
         return formatted_activities
     except Exception as e:
