@@ -74,7 +74,8 @@ def get_activity_descriptions(destination):
     """
 
     try:
-        response = openai.ChatCompletion.create(
+        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])  # Initialize OpenAI Client
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a travel expert providing recommendations."},
@@ -82,15 +83,14 @@ def get_activity_descriptions(destination):
             ],
             max_tokens=300,
         )
-        
-        activities = response["choices"][0]["message"]["content"].strip().split("\n")
+
+        activities_text = response.choices[0].message.content.strip()
+        activities_list = activities_text.split("\n")
         formatted_activities = []
 
-        for activity in activities:
+        for activity in activities_list:
             if ":" in activity:
                 title, description = activity.split(":", 1)
-
-                # Use a more stable image source (Unsplash API or Google Images)
                 image_url = f"https://source.unsplash.com/400x300/?{title.strip().replace(' ', '%20')}"
                 formatted_activities.append((title.strip(), description.strip(), image_url))
 
