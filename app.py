@@ -28,6 +28,61 @@ sheet = client.open_by_key(SPREADSHEET_ID).sheet1
 if "show_consultation" not in st.session_state:
     st.session_state.show_consultation = False
 
+# Language options
+LANGUAGES = {
+    "English": "en",
+    "Deutsch (German)": "de",
+    "Українська (Ukrainian)": "uk",
+    "Русский (Russian)": "ru",
+    "Română (Romanian)": "ro"
+}
+
+# Default language session state
+if "language" not in st.session_state:
+    st.session_state.language = "en"
+
+# Language selection dropdown
+selected_language = st.selectbox("🌍 Choose your language:", list(LANGUAGES.keys()))
+st.session_state.language = LANGUAGES[selected_language]  # Store selected language
+
+# Translation Dictionary
+TRANSLATIONS = {
+    "en": {
+        "title": "🌍 Travel Planner Chatbot ✈️",
+        "description": "Plan your trip, find flights, hotels, and activities effortlessly!",
+        "destination": "🌍 Where do you want to travel?",
+        "start_date": "📅 Start Date",
+        "end_date": "📅 End Date",
+        "num_people": "👥 Number of people",
+        "search_button": "🔍 Search for Flights & Hotels",
+        "flights": "✈️ Available Flights:",
+        "hotels": "🏨 Available Hotels:",
+        "activities": "🎡 Recommended Activities:",
+        "consultation": "💬 Private Consultation",
+        "name": "Your Name",
+        "contact": "Your Contact (Email/Phone)",
+        "submit": "Submit Request",
+        "success_save": "✅ Your travel request has been saved to Google Sheets!",
+        "error_save": "⚠️ Error saving to Google Sheets: {}",
+    },
+    "de": {
+        "title": "🌍 Reiseplaner Chatbot ✈️",
+        "description": "Planen Sie Ihre Reise, finden Sie Flüge, Hotels und Aktivitäten mühelos!",
+    },
+    "uk": {
+        "title": "🌍 Планувальник подорожей ✈️",
+        "description": "Плануйте свою подорож, знаходьте рейси, готелі та активності легко!",
+    },
+    "ru": {
+        "title": "🌍 Планировщик путешествий ✈️",
+        "description": "Планируйте поездку, находите билеты, отели и мероприятия легко!",
+    },
+    "ro": {
+        "title": "🌍 Planificator de călătorii ✈️",
+        "description": "Planificați călătoria, găsiți zboruri, hoteluri și activități fără efort!",
+    },
+}
+
 # Function to search flights
 def search_flights(destination, start_date, end_date):
     query = f"Best flights to {destination} from {start_date} to {end_date}"
@@ -44,9 +99,10 @@ def search_hotels(destination):
     hotels = [f"🏨 [{result['title']}]({result['href']})" for result in results]
     return hotels if hotels else ["⚠️ No hotels found."]
 
-# Function to generate activity descriptions using OpenAI
+# Function to generate activity descriptions using OpenAI (Now supports multiple languages)
 def get_activity_descriptions(destination):
-    """Fetches recommended activities from OpenAI without images."""
+    """Fetches recommended activities from OpenAI in the selected language."""
+    lang = st.session_state.language
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
     Each activity should have a clear title followed by a short engaging description.
@@ -54,10 +110,12 @@ def get_activity_descriptions(destination):
     Format it exactly like this:
     
     Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
+    
+    Respond in {selected_language}.
     """
 
     try:
-        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])  # Use OpenAI securely
+        client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -85,59 +143,41 @@ def save_request(name, contact, destination, start_date, end_date, num_people):
     """Saves travel request to Google Sheets"""
     try:
         sheet.append_row([name, contact, destination, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), num_people])
-        st.success("✅ Your travel request has been saved to Google Sheets!")
+        st.success(TRANSLATIONS[st.session_state.language]["success_save"])
     except Exception as e:
-        st.error(f"⚠️ Error saving to Google Sheets: {e}")
-        
+        st.error(TRANSLATIONS[st.session_state.language]["error_save"].format(e))
+
 # Streamlit App UI
-st.title("🌍 Travel Planner Chatbot ✈️")
-st.write("Plan your trip, find flights, hotels, and activities effortlessly!")
+lang = st.session_state.language
+st.title(TRANSLATIONS[lang]["title"])
+st.write(TRANSLATIONS[lang]["description"])
 
-# User Inputs
-destination = st.text_input("🌍 Where do you want to travel?", st.session_state.get("destination", ""))
-start_date = st.date_input("📅 Start Date", st.session_state.get("start_date", None))
-end_date = st.date_input("📅 End Date", st.session_state.get("end_date", None))
-num_people = st.number_input("👥 Number of people", min_value=1, step=1, value=st.session_state.get("num_people", 1))
+destination = st.text_input(TRANSLATIONS[lang]["destination"])
+start_date = st.date_input(TRANSLATIONS[lang]["start_date"])
+end_date = st.date_input(TRANSLATIONS[lang]["end_date"])
+num_people = st.number_input("👥 Number of people", min_value=1, step=1)
 
-if st.button("🔍 Search for Flights & Hotels"):
+if st.button(TRANSLATIONS[lang]["search_button"]):
     if destination and start_date and end_date:
-        # Store inputs in session state
-        st.session_state.destination = destination
-        st.session_state.start_date = start_date
-        st.session_state.end_date = end_date
-        st.session_state.num_people = num_people
-
-        st.subheader("✈️ Available Flights:")
-        flights = search_flights(destination, start_date, end_date)
-        for flight in flights:
-            st.markdown(f"- {flight}")
-
-        st.subheader("🏨 Available Hotels:")
-        hotels = search_hotels(destination)
-        for hotel in hotels:
-            st.markdown(f"- {hotel}")
-
-        st.subheader("🎡 Recommended Activities:")
+        st.subheader(TRANSLATIONS[lang]["activities"])
         activities = get_activity_descriptions(destination)
         
         for title, description in activities:
             st.markdown(f"**{title}**")
             st.write(description)
 
-        # Show consultation button
         st.session_state.show_consultation = True
     else:
         st.warning("⚠️ Please enter all required details before searching.")
 
-# Show consultation form only if the button was clicked
 if st.session_state.show_consultation:
-    st.subheader("💬 Private Consultation")
-    name = st.text_input("Your Name", st.session_state.get("name", ""))
-    contact = st.text_input("Your Contact (Email/Phone)", st.session_state.get("contact", ""))
+    st.subheader(TRANSLATIONS[lang]["consultation"])
+    name = st.text_input(TRANSLATIONS[lang]["name"])
+    contact = st.text_input(TRANSLATIONS[lang]["contact"])
 
-    if st.button("Submit Request"):
+    if st.button(TRANSLATIONS[lang]["submit"]):
         if name and contact:
             save_request(name, contact, destination, start_date, end_date, num_people)
-            st.session_state.show_consultation = False  # Hide the form after submitting
+            st.session_state.show_consultation = False
         else:
             st.warning("⚠️ Please enter your name and contact details.")
