@@ -32,6 +32,15 @@ if "show_consultation" not in st.session_state:
 if "language" not in st.session_state:
     st.session_state.language = "en"
 
+# Define language options
+LANGUAGES = {
+    "English": "en",
+    "Deutsch (German)": "de",
+    "Українська (Ukrainian)": "uk",
+    "Русский (Russian)": "ru",
+    "Română (Romanian)": "ro"
+}
+
 # Language selection dropdown
 selected_language = st.selectbox("🌍 Choose your language:", list(LANGUAGES.keys()))
 st.session_state.language = LANGUAGES[selected_language]  # Store selected language
@@ -245,12 +254,18 @@ if "hotels" in st.session_state:
     for hotel in st.session_state.hotels:
         st.markdown(f"- {hotel}")
         
-# Display activities
-if "activities" in st.session_state:
+# Display activities only if they exist and are not empty
+if "activities" in st.session_state and st.session_state.activities:
     st.subheader(TRANSLATIONS[lang]["activities"])
     for title, description in st.session_state.activities:
-        st.markdown(f"**{title}**")
-        st.write(description)
+        if title and description:  # Ensure both values exist
+            st.markdown(f"**{title}**")
+            st.write(description)
+else:
+    st.warning("⚠️ No activities found. Try again!")
+
+if "show_consultation" not in st.session_state:
+    st.session_state.show_consultation = False
 
 if st.session_state.show_consultation:
     st.subheader(TRANSLATIONS[lang]["consultation"])
@@ -260,6 +275,7 @@ if st.session_state.show_consultation:
     if st.button(TRANSLATIONS[lang]["submit"]):
         if name and contact:
             save_request(name, contact, destination, start_date, end_date, num_people)
+            st.success("✅ Request submitted successfully!")
             st.session_state.show_consultation = False  # Hide form after submitting
         else:
             st.warning("⚠️ Please enter your name and contact details.")
