@@ -104,20 +104,24 @@ def save_request(name, contact, destination, start_date, end_date, num_people):
         # Open the Google Sheet
         sheet = client.open_by_key(SPREADSHEET_ID).sheet1  
 
-        # Get existing data
+        # Debugging: Print sheet data before inserting
         existing_data = sheet.get_all_values()
+        print("✅ Existing Data in Sheet BEFORE Insert:", existing_data)  # Debugging log
 
         # If sheet is empty, add headers
         if not existing_data:
             sheet.append_row(["Name", "Contact", "Destination", "Start Date", "End Date", "People"])
+            print("✅ Headers added to the sheet")  # Debugging log
 
-        # Append the new travel request data
+        # Append new data
         sheet.append_row([name, contact, destination, start_date, end_date, num_people])
+        print("✅ Data successfully added to Google Sheets!")  # Debugging log
 
         st.success("✅ Your travel request has been saved to Google Sheets!")
 
     except Exception as e:
-        st.error(f"⚠️ Error saving to Google Sheets: {e}")  # Log any error
+        print(f"⚠️ Error saving to Google Sheets: {e}")  # Debugging log
+        st.error(f"⚠️ Error saving to Google Sheets: {e}")  # Show error in Streamlit
 
 # Streamlit App UI
 st.title("🌍 Travel Planner Chatbot ✈️")
