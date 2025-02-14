@@ -13,7 +13,7 @@ import requests
 load_dotenv()
 
 # Set OpenAI API Key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Load credentials from Streamlit Secrets
 creds_dict = st.secrets["google_sheets"]
@@ -67,14 +67,14 @@ def get_activity_descriptions(destination):
     prompt = f"""
     Provide a list of 3 recommended activities for a traveler visiting {destination}.
     Each activity should have a clear title followed by a short engaging description.
-    
+
     Format it exactly like this:
     
     Activity Title: Description of the activity, what makes it special, and what travelers can experience there.
     """
 
     try:
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a travel expert providing recommendations."},
@@ -83,13 +83,14 @@ def get_activity_descriptions(destination):
             max_tokens=300,
         )
         
-        activities = response.choices[0].message.content.strip().split("\n")
+        activities = response["choices"][0]["message"]["content"].strip().split("\n")
         formatted_activities = []
 
         for activity in activities:
             if ":" in activity:
                 title, description = activity.split(":", 1)
-                # Fetch image from Unsplash (or use Google Image Search)
+
+                # Use a more stable image source (Unsplash API or Google Images)
                 image_url = f"https://source.unsplash.com/400x300/?{title.strip().replace(' ', '%20')}"
                 formatted_activities.append((title.strip(), description.strip(), image_url))
 
@@ -144,7 +145,7 @@ if st.button("🔍 Search for Flights & Hotels"):
         for title, description, image_url in activities:
             st.markdown(f"**{title}**")
             st.write(description)
-            st.image(image_url, caption=title, use_column_width=True)
+            st.image(image_url, caption=title, use_container_width=True)
 
         # Show consultation button
         st.session_state.show_consultation = True
