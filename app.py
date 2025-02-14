@@ -13,12 +13,11 @@ import googleapiclient.discovery
 # Load API keys
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 
-import json
-creds_dict = json.loads(str(st.secrets["google_sheets"]))  # ✅ Convert to string first
+creds_dict = dict(st.secrets["google_sheets"])  # ✅ Convert directly to a dictionary
 
 # Authenticate with Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope) 
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
 # Open Google Sheet by ID
