@@ -1,6 +1,6 @@
 streamlit==1.27.0
 openai==0.28.0
-pandas==2.0.3 --only-binary=pandas
+pandas>=2.1.1
 python-dotenv==1.0.0
 gspread==5.10.0
 oauth2client==4
