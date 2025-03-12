@@ -19,11 +19,11 @@ st.set_page_config(
 # Then add both OG meta tags and your custom CSS in a single markdown call
 components.html("""
     <head>
-        <meta property="og:title" content="Alligator.tour - Travel Assistant">
-        <meta property="og:description" content="Plan your perfect trip with our AI travel assistant">
-        <meta property="og:image" content="https://raw.githubusercontent.com/ilonalaz/travel_ai/main/logo.png">
-        <meta property="og:url" content="https://alligatortour.streamlit.app/">
-        <meta name="twitter:card" content="summary_large_image">
+        <meta property="og:image" content="https://your-image-host.com/logo.png">
+        <meta property="og:image:type" content="image/png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="Alligator.tour Logo">
     </head>
 """, height=0)
 
