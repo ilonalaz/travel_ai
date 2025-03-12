@@ -40,7 +40,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize OpenAI API
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Language support
 SUPPORTED_LANGUAGES = {
@@ -347,25 +347,30 @@ def save_contact_to_sheet():
         print(f"Data to save: {data}")
         
         # Try to use Google Sheets
-        creds_file = "google_credentials.json"
-        google_creds = os.getenv("GOOGLE_CREDENTIALS")
+        google_creds_json = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+        credentials = ServiceAccountCredentials.from_service_account_info(google_creds_json, scope)
         
         # Create credentials file from environment if it doesn't exist
         if not os.path.exists(creds_file) and google_creds:
             with open(creds_file, "w") as f:
                 f.write(google_creds)
         
-        # Set up Google Sheets credentials
+        # Define scope first (before using it)
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
+    
+        # Get credentials directly from Streamlit secrets 
+        google_creds_json = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+        credentials = ServiceAccountCredentials.from_service_account_info(google_creds_json, scope)
+    
+        # Authorize with the credentials
         client = gspread.authorize(credentials)
-        
+         
         # Get spreadsheet ID from URL
         sheet_url = "https://docs.google.com/spreadsheets/d/1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk/edit?gid=0#gid=0"
         sheet_id = sheet_url.split("/d/")[1].split("/")[0]
-        
+    
         # Open sheet and add row
-        sheet = client.open_by_key(sheet_id).sheet1
+       sheet = client.open_by_key(sheet_id).sheet1
         
         # Add the row with all data
         row_data = [
