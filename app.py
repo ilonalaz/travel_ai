@@ -308,10 +308,8 @@ def extract_phone(message):
     
     return None
 
-# Update the save_contact_to_sheet function to work with Streamlit secrets
-
 def save_contact_to_sheet():
-    """Function to save contact details to Google Sheets using Streamlit secrets"""
+    """Function to save contact details to Google Sheets with enhanced debugging"""
     if not st.session_state.user_info["contact"]:
         print("No contact to save")
         return False
@@ -345,26 +343,88 @@ def save_contact_to_sheet():
         
         print(f"Data to save: {data}")
         
+        # Debugging: Print available secrets
+        print("Available secrets keys:", list(st.secrets.keys()))
+        
         # Get Google credentials from Streamlit secrets
-        google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-        sheet_id = st.secrets.get("SHEET_ID", "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk")  # Use from secrets or fallback
+        try:
+            google_creds = st.secrets["GOOGLE_CREDENTIALS"]
+            print("Successfully retrieved Google credentials from secrets")
+            print("Credentials type:", type(google_creds))
+            # Don't print the whole credentials for security, but print part of it to confirm it's loaded
+            if isinstance(google_creds, dict):
+                print("Credentials keys:", list(google_creds.keys()))
+            else:
+                print("Credentials is not a dictionary, length:", len(str(google_creds)))
+        except Exception as e:
+            print(f"Error accessing Google credentials: {e}")
+            return False
+        
+        # Get Sheet ID
+        try:
+            sheet_id = st.secrets.get("SHEET_ID")
+            if not sheet_id:
+                sheet_id = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Fallback ID
+            print(f"Using sheet ID: {sheet_id}")
+        except Exception as e:
+            print(f"Error accessing Sheet ID: {e}")
+            sheet_id = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Fallback ID
+            print(f"Using fallback sheet ID: {sheet_id}")
         
         # Create a temporary credentials file
         import tempfile
         import json
         
+        print("Creating temporary credentials file...")
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp:
-            temp.write(json.dumps(google_creds).encode('utf-8'))
+            if isinstance(google_creds, dict):
+                temp.write(json.dumps(google_creds).encode('utf-8'))
+            else:
+                # Try to parse as JSON if it's a string
+                try:
+                    # If it's a JSON string, parse it to ensure it's valid
+                    parsed = json.loads(google_creds)
+                    temp.write(json.dumps(parsed).encode('utf-8'))
+                except json.JSONDecodeError:
+                    # If it's not valid JSON, just write it as is - it might be already properly formatted
+                    temp.write(google_creds.encode('utf-8'))
+            
             temp_path = temp.name
+            print(f"Created temporary file at: {temp_path}")
         
         try:
             # Set up Google Sheets credentials using the temp file
             scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-            credentials = ServiceAccountCredentials.from_json_keyfile_name(temp_path, scope)
+            print("Setting up credentials...")
+            try:
+                credentials = ServiceAccountCredentials.from_json_keyfile_name(temp_path, scope)
+                print("Successfully created credentials from key file")
+            except Exception as cred_err:
+                print(f"Error creating credentials: {cred_err}")
+                # Show the beginning of the file content for debugging
+                with open(temp_path, 'r') as f:
+                    content = f.read()
+                    print(f"First 100 chars of credentials file: {content[:100]}...")
+                raise
+            
+            print("Authorizing with gspread...")
             client = gspread.authorize(credentials)
+            print("Successfully authorized with gspread")
             
             # Open sheet by ID
-            sheet = client.open_by_key(sheet_id).sheet1
+            print(f"Opening sheet with ID: {sheet_id}")
+            try:
+                sheet = client.open_by_key(sheet_id).sheet1
+                print("Successfully opened sheet")
+            except Exception as sheet_err:
+                print(f"Error opening sheet: {sheet_err}")
+                # Try listing available spreadsheets for debugging
+                try:
+                    available_sheets = client.list_spreadsheet_files()
+                    print(f"Available sheets: {[s['name'] for s in available_sheets[:5]]}")
+                except:
+                    print("Could not list available sheets")
+                raise
             
             # Add the row with all data
             row_data = [
@@ -377,7 +437,7 @@ def save_contact_to_sheet():
                 data["timestamp"]
             ]
             
-            print(f"Row data: {row_data}")
+            print(f"Row data to append: {row_data}")
             sheet.append_row(row_data)
             print(f"Successfully saved contact data to Google Sheet")
             
@@ -388,9 +448,11 @@ def save_contact_to_sheet():
             # Clean up the temp file
             import os
             try:
+                print(f"Cleaning up temporary file: {temp_path}")
                 os.unlink(temp_path)
-            except:
-                pass
+                print("Temporary file removed")
+            except Exception as e:
+                print(f"Error removing temporary file: {e}")
         
     except Exception as e:
         print(f"Error saving to Google Sheet: {e}")
@@ -417,6 +479,7 @@ def save_contact_to_sheet():
                     data["timestamp"]
                 ])
             print(f"Saved to local CSV file: {fallback_file}")
+            st.session_state.contact_saved = True  # Mark as saved so we don't keep asking
             return True
         except Exception as csv_err:
             print(f"Error saving to CSV: {str(csv_err)}")
