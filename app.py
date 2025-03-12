@@ -370,7 +370,7 @@ def save_contact_to_sheet():
         sheet_id = sheet_url.split("/d/")[1].split("/")[0]
     
         # Open sheet and add row
-       sheet = client.open_by_key(sheet_id).sheet1
+        sheet = client.open_by_key(sheet_id).sheet1
         
         # Add the row with all data
         row_data = [
