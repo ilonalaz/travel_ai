@@ -7,7 +7,6 @@ import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
-import streamlit.components.v1 as components
 
 
 # Set page config first
@@ -16,17 +15,18 @@ st.set_page_config(
     page_icon="🧳",
     layout="wide"
 )
-# Then add both OG meta tags and your custom CSS in a single markdown call
+import streamlit.components.v1 as components
+
 components.html("""
     <head>
-        <meta property="og:image" content="https://github.com/ilonalaz/travel_ai/blob/main/docs/logo.png">
-        <meta property="og:image:type" content="image/png">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="Alligator.tour Logo">
-
+        <meta property="og:title" content="Alligator.tour - Travel Assistant">
+        <meta property="og:description" content="Plan your perfect trip with our AI travel assistant">
+        <meta property="og:image" content="https://yourusername.github.io/your-repo/logo.png">
+        <meta property="og:url" content="https://alligatortour.streamlit.app/">
+        <meta name="twitter:card" content="summary_large_image">
     </head>
 """, height=0)
+
 
 # Keep your regular CSS styling
 st.markdown("""
