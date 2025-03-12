@@ -887,19 +887,25 @@ with st.sidebar:
         st.image("logo.png", width=200)
     except:
         st.title("🐊 Alligator.tour")
-    
+
     # Add language selector
     language_selector()
-    
+
     # Current language
     lang = st.session_state.user_info.get("language") or "en"
-    
+
     st.markdown(f"### {UI_TRANSLATIONS[lang]['sidebar_title']}")
     st.markdown("---")
-    
+
+    # 🔹 Add Travel Agency Links
+    st.markdown("### 🌍 Connect with Alligator.tour")
+    st.markdown("[🌐 Visit our Website](https://www.alligatortour.de/)", unsafe_allow_html=True)
+    st.markdown("[📷 Instagram (Germany)](https://www.instagram.com/alligatortour.deutschland)", unsafe_allow_html=True)
+    st.markdown("[📷 Instagram (Ukraine)](https://www.instagram.com/alligatortour/)", unsafe_allow_html=True)
+
     # Popular destinations
     st.markdown(f"## {UI_TRANSLATIONS[lang]['popular_destinations']}")
-    
+
     destinations = [
         {
             "name": "Bali, Indonesia",
@@ -917,7 +923,7 @@ with st.sidebar:
             "desc": "Blend of ultramodern and traditional with amazing food"
         }
     ]
-    
+
     # Use Streamlit's native image display rather than HTML
     for dest in destinations:
         st.markdown(f"### {dest['name']}")
@@ -927,6 +933,7 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Could not load image: {e}")
             st.markdown(dest['desc'])
+
 
 # Main content - use translated UI elements
 lang = st.session_state.user_info.get("language") or "en"
