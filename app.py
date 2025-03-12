@@ -308,6 +308,8 @@ def extract_phone(message):
     
     return None
 
+# Update the save_contact_to_sheet function to work with Streamlit secrets
+
 def save_contact_to_sheet():
     """Function to save contact details to Google Sheets using Streamlit secrets"""
     if not st.session_state.user_info["contact"]:
@@ -318,10 +320,19 @@ def save_contact_to_sheet():
         # Ensure we have values for all fields
         destination = st.session_state.user_info.get("destination")
         if not destination or destination == "None":
-            # Logic to find destination from chat history (keep your existing code)
-            pass
+            # See if a destination is mentioned in the chat history
+            for msg in st.session_state.messages:
+                if msg["role"] == "assistant" and "trip to " in msg["content"]:
+                    parts = msg["content"].split("trip to ")
+                    if len(parts) > 1:
+                        potential_dest = parts[1].split("!")[0].strip()
+                        if potential_dest:
+                            destination = potential_dest
+                            print(f"Found destination from chat history: {destination}")
+                            st.session_state.user_info["destination"] = destination
+                            break
         
-        # Prepare data to save
+        # Always use default values to ensure something is saved
         data = {
             "name": st.session_state.user_info.get("name") or "Not provided",
             "contact": st.session_state.user_info["contact"],
@@ -334,39 +345,52 @@ def save_contact_to_sheet():
         
         print(f"Data to save: {data}")
         
-        # Use Google Sheets with credentials from Streamlit secrets
+        # Get Google credentials from Streamlit secrets
+        google_creds = st.secrets["GOOGLE_CREDENTIALS"]
+        sheet_id = st.secrets.get("SHEET_ID", "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk")  # Use from secrets or fallback
+        
+        # Create a temporary credentials file
+        import tempfile
         import json
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         
-        # Parse the JSON string from secrets
-        google_creds_json = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-        credentials = ServiceAccountCredentials.from_service_account_info(google_creds_json, scope)
-        client = gspread.authorize(credentials)
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp:
+            temp.write(json.dumps(google_creds).encode('utf-8'))
+            temp_path = temp.name
         
-        # Get spreadsheet ID from URL (you can also store this in secrets)
-        sheet_url = "https://docs.google.com/spreadsheets/d/1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk/edit?gid=0#gid=0"
-        sheet_id = st.secrets.get("SHEET_ID", "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk")
-        
-        # Open sheet and add row
-        sheet = client.open_by_key(sheet_id).sheet1
-        
-        # Add the row with all data
-        row_data = [
-            data["name"],
-            data["contact"],
-            data["destination"],
-            data["interests"],
-            data["budget"],
-            data["language"],
-            data["timestamp"]
-        ]
-        
-        print(f"Row data: {row_data}")
-        sheet.append_row(row_data)
-        print(f"Successfully saved contact data to Google Sheet")
-        
-        st.session_state.contact_saved = True
-        return True
+        try:
+            # Set up Google Sheets credentials using the temp file
+            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(temp_path, scope)
+            client = gspread.authorize(credentials)
+            
+            # Open sheet by ID
+            sheet = client.open_by_key(sheet_id).sheet1
+            
+            # Add the row with all data
+            row_data = [
+                data["name"],
+                data["contact"],
+                data["destination"],
+                data["interests"],
+                data["budget"],
+                data["language"],
+                data["timestamp"]
+            ]
+            
+            print(f"Row data: {row_data}")
+            sheet.append_row(row_data)
+            print(f"Successfully saved contact data to Google Sheet")
+            
+            st.session_state.contact_saved = True
+            return True
+            
+        finally:
+            # Clean up the temp file
+            import os
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
         
     except Exception as e:
         print(f"Error saving to Google Sheet: {e}")
@@ -374,7 +398,7 @@ def save_contact_to_sheet():
         import traceback
         print(traceback.format_exc())
         
-        # Try CSV fallback if needed
+        # Try CSV fallback
         try:
             fallback_file = "contact_leads.csv"
             import csv
@@ -393,9 +417,10 @@ def save_contact_to_sheet():
                     data["timestamp"]
                 ])
             print(f"Saved to local CSV file: {fallback_file}")
+            return True
         except Exception as csv_err:
             print(f"Error saving to CSV: {str(csv_err)}")
-        return False
+            return False
 
 def should_request_contact():
     # Check if we've collected enough info and should ask for contact
