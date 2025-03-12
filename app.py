@@ -21,7 +21,7 @@ components.html("""
     <head>
         <meta property="og:title" content="Alligator.tour - Travel Assistant">
         <meta property="og:description" content="Plan your perfect trip with our AI travel assistant">
-        <meta property="og:image" content="https://yourusername.github.io/your-repo/logo.png">
+        <meta property="og:image" content="https://github.com/ilonalaz/travel_ai/blob/main/docs/logo.png">
         <meta property="og:url" content="https://alligatortour.streamlit.app/">
         <meta name="twitter:card" content="summary_large_image">
     </head>
