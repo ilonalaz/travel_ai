@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import openai
-from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime
 import json
@@ -9,8 +8,6 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import re
 
-# Load environment variables
-load_dotenv()
 
 # Set page config
 st.set_page_config(
