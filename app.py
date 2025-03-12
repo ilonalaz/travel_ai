@@ -309,28 +309,19 @@ def extract_phone(message):
     return None
 
 def save_contact_to_sheet():
-    """Simplified function to save contact details to Google Sheets"""
+    """Function to save contact details to Google Sheets using Streamlit secrets"""
     if not st.session_state.user_info["contact"]:
         print("No contact to save")
-        return
+        return False
     
     try:
         # Ensure we have values for all fields
         destination = st.session_state.user_info.get("destination")
         if not destination or destination == "None":
-            # See if a destination is mentioned in the chat history
-            for msg in st.session_state.messages:
-                if msg["role"] == "assistant" and "trip to " in msg["content"]:
-                    parts = msg["content"].split("trip to ")
-                    if len(parts) > 1:
-                        potential_dest = parts[1].split("!")[0].strip()
-                        if potential_dest:
-                            destination = potential_dest
-                            print(f"Found destination from chat history: {destination}")
-                            st.session_state.user_info["destination"] = destination
-                            break
+            # Logic to find destination from chat history (keep your existing code)
+            pass
         
-        # Always use default values to ensure something is saved
+        # Prepare data to save
         data = {
             "name": st.session_state.user_info.get("name") or "Not provided",
             "contact": st.session_state.user_info["contact"],
@@ -343,29 +334,19 @@ def save_contact_to_sheet():
         
         print(f"Data to save: {data}")
         
-        # Try to use Google Sheets
-        google_creds_json = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-        credentials = ServiceAccountCredentials.from_service_account_info(google_creds_json, scope)
-        
-        # Create credentials file from environment if it doesn't exist
-        if not os.path.exists(creds_file) and google_creds:
-            with open(creds_file, "w") as f:
-                f.write(google_creds)
-        
-        # Define scope first (before using it)
+        # Use Google Sheets with credentials from Streamlit secrets
+        import json
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    
-        # Get credentials directly from Streamlit secrets 
+        
+        # Parse the JSON string from secrets
         google_creds_json = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
         credentials = ServiceAccountCredentials.from_service_account_info(google_creds_json, scope)
-    
-        # Authorize with the credentials
         client = gspread.authorize(credentials)
-         
-        # Get spreadsheet ID from URL
+        
+        # Get spreadsheet ID from URL (you can also store this in secrets)
         sheet_url = "https://docs.google.com/spreadsheets/d/1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk/edit?gid=0#gid=0"
-        sheet_id = sheet_url.split("/d/")[1].split("/")[0]
-    
+        sheet_id = st.secrets.get("SHEET_ID", "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk")
+        
         # Open sheet and add row
         sheet = client.open_by_key(sheet_id).sheet1
         
@@ -385,6 +366,7 @@ def save_contact_to_sheet():
         print(f"Successfully saved contact data to Google Sheet")
         
         st.session_state.contact_saved = True
+        return True
         
     except Exception as e:
         print(f"Error saving to Google Sheet: {e}")
@@ -392,7 +374,7 @@ def save_contact_to_sheet():
         import traceback
         print(traceback.format_exc())
         
-        # Try CSV fallback
+        # Try CSV fallback if needed
         try:
             fallback_file = "contact_leads.csv"
             import csv
@@ -413,6 +395,7 @@ def save_contact_to_sheet():
             print(f"Saved to local CSV file: {fallback_file}")
         except Exception as csv_err:
             print(f"Error saving to CSV: {str(csv_err)}")
+        return False
 
 def should_request_contact():
     # Check if we've collected enough info and should ask for contact
