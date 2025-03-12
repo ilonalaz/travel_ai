@@ -9,15 +9,22 @@ from oauth2client.service_account import ServiceAccountCredentials
 import re
 
 
-# Set page config
+# Set page config first
 st.set_page_config(
     page_title="Alligator.tour - Travel Assistant",
     page_icon="🧳",
     layout="wide"
 )
 
-# Custom CSS (unchanged)
+# Then add both OG meta tags and your custom CSS in a single markdown call
 st.markdown("""
+<head>
+    <meta property="og:title" content="Alligator.tour - Travel Assistant">
+    <meta property="og:description" content="Plan your perfect trip with our AI travel assistant">
+    <meta property="og:image" content="https://raw.githubusercontent.com/ilonalaz/travel_ai/main/logo.png">
+    <meta property="og:url" content="https://alligatortour.streamlit.app/">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
 <style>
 /* Make the sidebar background white */
 [data-testid="stSidebar"] {
