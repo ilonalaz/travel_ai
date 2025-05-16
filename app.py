@@ -634,11 +634,6 @@ os.makedirs("conversations", exist_ok=True)
 
 # Main entry point
 if __name__ == "__main__":
-    # Set port from environment variable or default to 8000
     port = int(os.getenv("PORT", 8000))
-    
-    # Set host from environment variable or default to 0.0.0.0
     host = os.getenv("HOST", "0.0.0.0")
-    
-    # Run the FastAPI app using uvicorn
-    uvicorn.run("app:app", host=host, port=port, reload=True)
+    uvicorn.run("app:app", host=host, port=port)
