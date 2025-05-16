@@ -1,0 +1,187 @@
+{
+    "en": [
+      {
+        "name": "Bali, Indonesia",
+        "image": "bali.jpg",
+        "desc": "Tropical paradise with beaches, temples, and rice terraces",
+        "highlights": ["Ubud Sacred Monkey Forest", "Tegalalang Rice Terraces", "Uluwatu Temple"],
+        "best_time": "April to October"
+      },
+      {
+        "name": "Barcelona, Spain",
+        "image": "barcelona.jpg",
+        "desc": "Stunning architecture, Mediterranean beaches, and vibrant culture",
+        "highlights": ["Sagrada Familia", "Park Güell", "La Rambla"],
+        "best_time": "May to June, September to October"
+      },
+      {
+        "name": "Tokyo, Japan",
+        "image": "tokyo.jpg",
+        "desc": "Blend of ultramodern and traditional with amazing food",
+        "highlights": ["Shibuya Crossing", "Tokyo Skytree", "Meiji Shrine"],
+        "best_time": "March to May, September to November"
+      },
+      {
+        "name": "Santorini, Greece",
+        "image": "santorini.jpg",
+        "desc": "Iconic white-washed buildings with stunning blue domes overlooking the Aegean Sea",
+        "highlights": ["Oia Sunset", "Fira Town", "Black Sand Beaches"],
+        "best_time": "May to October"
+      },
+      {
+        "name": "Kyiv, Ukraine",
+        "image": "kyiv.jpg", 
+        "desc": "Rich historical city with golden domes and vibrant cultural scene",
+        "highlights": ["St. Sophia's Cathedral", "Kyiv Pechersk Lavra", "Independence Square"],
+        "best_time": "May to September"
+      }
+    ],
+    "de": [
+      {
+        "name": "Bali, Indonesien",
+        "image": "bali.jpg",
+        "desc": "Tropisches Paradies mit Stränden, Tempeln und Reisterrassen",
+        "highlights": ["Ubud Sacred Monkey Forest", "Tegalalang Reisterrassen", "Uluwatu Tempel"],
+        "best_time": "April bis Oktober"
+      },
+      {
+        "name": "Barcelona, Spanien",
+        "image": "barcelona.jpg",
+        "desc": "Atemberaubende Architektur, Mittelmeerstrände und lebendige Kultur",
+        "highlights": ["Sagrada Familia", "Park Güell", "La Rambla"],
+        "best_time": "Mai bis Juni, September bis Oktober"
+      },
+      {
+        "name": "Tokio, Japan",
+        "image": "tokyo.jpg",
+        "desc": "Mischung aus ultramodern und traditionell mit erstaunlichem Essen",
+        "highlights": ["Shibuya Kreuzung", "Tokyo Skytree", "Meiji-Schrein"],
+        "best_time": "März bis Mai, September bis November"
+      },
+      {
+        "name": "Santorini, Griechenland",
+        "image": "santorini.jpg",
+        "desc": "Ikonische weiß getünchte Gebäude mit atemberaubenden blauen Kuppeln mit Blick auf die Ägäis",
+        "highlights": ["Sonnenuntergang in Oia", "Fira Stadt", "Schwarze Sandstrände"],
+        "best_time": "Mai bis Oktober"
+      },
+      {
+        "name": "Kiew, Ukraine",
+        "image": "kyiv.jpg",
+        "desc": "Reiche historische Stadt mit goldenen Kuppeln und lebendiger Kulturszene",
+        "highlights": ["St. Sophia Kathedrale", "Kiew Pechersk Lavra", "Unabhängigkeitsplatz"],
+        "best_time": "Mai bis September"
+      }
+    ],
+    "uk": [
+      {
+        "name": "Балі, Індонезія",
+        "image": "bali.jpg",
+        "desc": "Тропічний рай з пляжами, храмами та рисовими терасами",
+        "highlights": ["Священний ліс мавп в Убуді", "Рисові тераси Тегалаланг", "Храм Улувату"],
+        "best_time": "Квітень - Жовтень"
+      },
+      {
+        "name": "Барселона, Іспанія",
+        "image": "barcelona.jpg",
+        "desc": "Вражаюча архітектура, середземноморські пляжі та яскрава культура",
+        "highlights": ["Саграда Фамілія", "Парк Гуель", "Ла Рамбла"],
+        "best_time": "Травень - Червень, Вересень - Жовтень"
+      },
+      {
+        "name": "Токіо, Японія",
+        "image": "tokyo.jpg",
+        "desc": "Поєднання ультрасучасного і традиційного з дивовижною їжею",
+        "highlights": ["Перехрестя Сібуя", "Токійське небесне дерево", "Храм Мейдзі"],
+        "best_time": "Березень - Травень, Вересень - Листопад"
+      },
+      {
+        "name": "Санторіні, Греція",
+        "image": "santorini.jpg",
+        "desc": "Знамениті білі будівлі з вражаючими блакитними куполами з видом на Егейське море",
+        "highlights": ["Захід сонця в Ої", "Місто Фіра", "Пляжі з чорним піском"],
+        "best_time": "Травень - Жовтень"
+      },
+      {
+        "name": "Київ, Україна",
+        "image": "kyiv.jpg", 
+        "desc": "Багате історичне місто із золотими куполами та яскравою культурною сценою",
+        "highlights": ["Собор Святої Софії", "Києво-Печерська лавра", "Майдан Незалежності"],
+        "best_time": "Травень - Вересень"
+      }
+    ],
+    "ru": [
+      {
+        "name": "Бали, Индонезия",
+        "image": "bali.jpg",
+        "desc": "Тропический рай с пляжами, храмами и рисовыми террасами",
+        "highlights": ["Священный лес обезьян в Убуде", "Рисовые террасы Тегалаланг", "Храм Улувату"],
+        "best_time": "Апрель - Октябрь"
+      },
+      {
+        "name": "Барселона, Испания",
+        "image": "barcelona.jpg",
+        "desc": "Потрясающая архитектура, средиземноморские пляжи и яркая культура",
+        "highlights": ["Саграда Фамилия", "Парк Гуэль", "Ла Рамбла"],
+        "best_time": "Май - Июнь, Сентябрь - Октябрь"
+      },
+      {
+        "name": "Токио, Япония",
+        "image": "tokyo.jpg",
+        "desc": "Сочетание ультрасовременного и традиционного с удивительной едой",
+        "highlights": ["Перекресток Сибуя", "Токийское небесное дерево", "Храм Мэйдзи"],
+        "best_time": "Март - Май, Сентябрь - Ноябрь"
+      },
+      {
+        "name": "Санторини, Греция",
+        "image": "santorini.jpg",
+        "desc": "Знаменитые белые здания с потрясающими синими куполами с видом на Эгейское море",
+        "highlights": ["Закат в Ойе", "Город Фира", "Пляжи с черным песком"],
+        "best_time": "Май - Октябрь"
+      },
+      {
+        "name": "Киев, Украина",
+        "image": "kyiv.jpg", 
+        "desc": "Богатый исторический город с золотыми куполами и яркой культурной сценой",
+        "highlights": ["Собор Святой Софии", "Киево-Печерская лавра", "Площадь Независимости"],
+        "best_time": "Май - Сентябрь"
+      }
+    ],
+    "ro": [
+      {
+        "name": "Bali, Indonezia",
+        "image": "bali.jpg",
+        "desc": "Paradis tropical cu plaje, temple și terase de orez",
+        "highlights": ["Pădurea Sacră a Maimuțelor din Ubud", "Terasele de orez Tegalalang", "Templul Uluwatu"],
+        "best_time": "Aprilie - Octombrie"
+      },
+      {
+        "name": "Barcelona, Spania",
+        "image": "barcelona.jpg",
+        "desc": "Arhitectură uimitoare, plaje mediteraneene și cultură vibrantă",
+        "highlights": ["Sagrada Familia", "Parcul Güell", "La Rambla"],
+        "best_time": "Mai - Iunie, Septembrie - Octombrie"
+      },
+      {
+        "name": "Tokyo, Japonia",
+        "image": "tokyo.jpg",
+        "desc": "Amestec de ultramodern și tradițional cu mâncare uimitoare",
+        "highlights": ["Intersecția Shibuya", "Tokyo Skytree", "Altarul Meiji"],
+        "best_time": "Martie - Mai, Septembrie - Noiembrie"
+      },
+      {
+        "name": "Santorini, Grecia",
+        "image": "santorini.jpg",
+        "desc": "Clădiri albe iconice cu cupole albastre uimitoare cu vedere la Marea Egee",
+        "highlights": ["Apusul din Oia", "Orașul Fira", "Plaje cu nisip negru"],
+        "best_time": "Mai - Octombrie"
+      },
+      {
+        "name": "Kiev, Ucraina",
+        "image": "kyiv.jpg", 
+        "desc": "Oraș istoric bogat cu cupole aurii și scenă culturală vibrantă",
+        "highlights": ["Catedrala Sf. Sofia", "Lavra Pecerska din Kiev", "Piața Independenței"],
+        "best_time": "Mai - Septembrie"
+      }
+    ]
+  }

@@ -1,0 +1,277 @@
+{
+    "en": {
+      "title": "Talk to your Travel Assistant",
+      "subtitle": "Ask me about destinations, travel tips, or help planning your next adventure!",
+      "input_placeholder": "Type your travel question here...",
+      "sidebar_title": "Discover Your Next Adventure",
+      "popular_destinations": "Trending Destinations",
+      "destinations_description": "Explore our most sought-after travel destinations and start planning your dream vacation",
+      "call_to_action": "Start Planning Today",
+      "chat_header": {
+        "title": "Alligator Tour Assistant",
+        "status": "Online | Ready to help"
+      },
+      "chat_intro": {
+        "title": "Consultation with Our Travel Expert",
+        "description": "Our AI-powered travel assistant is here to help you plan your perfect vacation. Ask about destinations, get travel tips, or find the best activities for your interests."
+      },
+      "features": {
+        "destinations": "Get recommendations for over 100+ destinations worldwide",
+        "languages": "Available in 5 languages: English, German, Ukrainian, Russian and Romanian",
+        "itineraries": "Get personalized itineraries based on your interests and budget",
+        "availability": "Available 24/7 to answer your travel questions instantly"
+      },
+      "main_nav": {
+        "chat": "Chat with Assistant",
+        "destinations": "Explore Destinations",
+        "about": "About Alligator.tour"
+      },
+      "destinations": {
+        "bali": {
+          "name": "Bali, Indonesia",
+          "description": "Tropical paradise with beaches, temples, and rice terraces",
+          "best_time": "Best time: April to October",
+          "explore": "Explore"
+        },
+        "barcelona": {
+          "name": "Barcelona, Spain",
+          "description": "Stunning architecture, Mediterranean beaches, and vibrant culture",
+          "best_time": "Best time: May to June",
+          "explore": "Explore"
+        },
+        "tokyo": {
+          "name": "Tokyo, Japan",
+          "description": "Blend of ultramodern and traditional with amazing food",
+          "best_time": "Best time: March to May",
+          "explore": "Explore"
+        }
+      },
+      "cta": {
+        "title": "Ready to Start Your Adventure?",
+        "description": "Let our travel specialists help you plan the perfect vacation with personalized recommendations",
+        "contact": "Contact a Specialist",
+        "view_packages": "View Travel Packages"
+      },
+      "welcome_message": "👋 Hello! I'm your Alligator.tour travel assistant!\n\nI'm here to help you plan an amazing vacation experience.\n\n✨ Where are you thinking of traveling to? Or if you're not sure yet, I'd be happy to suggest some fantastic destinations based on your interests!"
+    },
+    "de": {
+      "title": "Sprich mit deinem Reiseassistenten",
+      "subtitle": "Frag mich nach Reisezielen, Reisetipps oder Hilfe bei der Planung deines nächsten Abenteuers!",
+      "input_placeholder": "Gib deine Reisefrage hier ein...",
+      "sidebar_title": "Entdecke dein nächstes Abenteuer",
+      "popular_destinations": "Angesagte Reiseziele",
+      "destinations_description": "Entdecke unsere beliebtesten Reiseziele und beginne mit der Planung deines Traumurlaubs",
+      "call_to_action": "Starte die Planung noch heute",
+      "chat_header": {
+        "title": "Alligator Tour Assistent",
+        "status": "Online | Bereit zu helfen"
+      },
+      "chat_intro": {
+        "title": "Beratung mit unserem Reiseexperten",
+        "description": "Unser KI-gesteuerter Reiseassistent ist hier, um dir bei der Planung deines perfekten Urlaubs zu helfen. Frage nach Reisezielen, erhalte Reisetipps oder finde die besten Aktivitäten für deine Interessen."
+      },
+      "features": {
+        "destinations": "Erhalte Empfehlungen für über 100+ Reiseziele weltweit",
+        "languages": "Verfügbar in 5 Sprachen: Englisch, Deutsch, Ukrainisch, Russisch und Rumänisch",
+        "itineraries": "Erhalte personalisierte Reiserouten basierend auf deinen Interessen und deinem Budget",
+        "availability": "Rund um die Uhr verfügbar, um deine Reisefragen sofort zu beantworten"
+      },
+      "main_nav": {
+        "chat": "Chat mit Assistent",
+        "destinations": "Reiseziele entdecken",
+        "about": "Über Alligator.tour"
+      },
+      "destinations": {
+        "bali": {
+          "name": "Bali, Indonesien",
+          "description": "Tropisches Paradies mit Stränden, Tempeln und Reisterrassen",
+          "best_time": "Beste Reisezeit: April bis Oktober",
+          "explore": "Entdecken"
+        },
+        "barcelona": {
+          "name": "Barcelona, Spanien",
+          "description": "Beeindruckende Architektur, Mittelmeerstrände und lebendige Kultur",
+          "best_time": "Beste Reisezeit: Mai bis Juni",
+          "explore": "Entdecken"
+        },
+        "tokyo": {
+          "name": "Tokio, Japan",
+          "description": "Mischung aus Ultramodernem und Traditionellem mit erstaunlichem Essen",
+          "best_time": "Beste Reisezeit: März bis Mai",
+          "explore": "Entdecken"
+        }
+      },
+      "cta": {
+        "title": "Bereit, dein Abenteuer zu beginnen?",
+        "description": "Lass unsere Reisespezialisten dir helfen, den perfekten Urlaub mit personalisierten Empfehlungen zu planen",
+        "contact": "Kontaktiere einen Spezialisten",
+        "view_packages": "Reisepakete ansehen"
+      },
+      "welcome_message": "👋 Hallo! Ich bin dein Alligator.tour Reiseassistent!\n\nIch bin hier, um dir bei der Planung eines tollen Urlaubserlebnisses zu helfen.\n\n✨ Wohin möchtest du reisen? Oder wenn du dir noch nicht sicher bist, kann ich dir gerne einige fantastische Reiseziele basierend auf deinen Interessen vorschlagen!"
+    },
+    "uk": {
+      "title": "Поговоріть з туристичним асистентом",
+      "subtitle": "Запитайте про напрямки, поради щодо подорожей або допомогу у плануванні вашої наступної пригоди!",
+      "input_placeholder": "Введіть своє питання про подорож тут...",
+      "sidebar_title": "Відкрийте для себе наступну пригоду",
+      "popular_destinations": "Популярні напрямки",
+      "destinations_description": "Відкрийте наші найпопулярніші напрямки подорожей і почніть планувати відпустку своєї мрії",
+      "call_to_action": "Почніть планування сьогодні",
+      "chat_header": {
+        "title": "Туристичний асистент Alligator Tour",
+        "status": "Онлайн | Готовий допомогти"
+      },
+      "chat_intro": {
+        "title": "Консультація з нашим експертом",
+        "description": "Наш туристичний асистент допоможе вам спланувати ідеальну відпустку. Запитайте про напрямки, отримайте поради або знайдіть найкращі заходи для ваших інтересів."
+      },
+      "features": {
+        "destinations": "Рекомендації понад 100+ напрямків по всьому світу",
+        "languages": "Доступно 5 мовами: англійською, німецькою, українською, російською та румунською",
+        "itineraries": "Персоналізовані маршрути на основі ваших інтересів і бюджету",
+        "availability": "Доступний 24/7 для миттєвих відповідей на ваші запитання"
+      },
+      "main_nav": {
+        "chat": "Чат з асистентом",
+        "destinations": "Дослідіть напрямки",
+        "about": "Про Alligator.tour"
+      },
+      "destinations": {
+        "bali": {
+          "name": "Балі, Індонезія",
+          "description": "Тропічний рай з пляжами, храмами та рисовими терасами",
+          "best_time": "Найкращий час: квітень - жовтень",
+          "explore": "Дослідити"
+        },
+        "barcelona": {
+          "name": "Барселона, Іспанія",
+          "description": "Вражаюча архітектура, середземноморські пляжі та яскрава культура",
+          "best_time": "Найкращий час: травень - червень",
+          "explore": "Дослідити"
+        },
+        "tokyo": {
+          "name": "Токіо, Японія",
+          "description": "Поєднання ультрасучасного та традиційного з дивовижною їжею",
+          "best_time": "Найкращий час: березень - травень",
+          "explore": "Дослідити"
+        }
+      },
+      "cta": {
+        "title": "Готові розпочати вашу пригоду?",
+        "description": "Дозвольте нашим фахівцям з подорожей допомогти вам спланувати ідеальну відпустку з персоналізованими рекомендаціями",
+        "contact": "Зв'язатися з фахівцем",
+        "view_packages": "Переглянути тури"
+      },
+      "welcome_message": "👋 Привіт! Я ваш туристичний асистент Alligator.tour!\n\nЯ тут, щоб допомогти вам спланувати чудову відпустку.\n\n✨ Куди ви думаєте поїхати? Або якщо ви ще не впевнені, я можу запропонувати фантастичні напрямки на основі ваших інтересів!"
+    },
+    "ru": {
+      "title": "Поговорите со своим туристическим ассистентом",
+      "subtitle": "Спросите меня о направлениях, советах по путешествиям или помощи в планировании вашего следующего приключения!",
+      "input_placeholder": "Введите свой вопрос о путешествии здесь...",
+      "sidebar_title": "Откройте для себя следующее приключение",
+      "popular_destinations": "Популярные направления",
+      "destinations_description": "Исследуйте наши самые востребованные направления путешествий и начните планировать отпуск своей мечты",
+      "call_to_action": "Начните планирование сегодня",
+      "chat_header": {
+        "title": "Туристический ассистент Alligator Tour",
+        "status": "Онлайн | Готов помочь"
+      },
+      "chat_intro": {
+        "title": "Консультация с нашим экспертом",
+        "description": "Наш туристический ассистент здесь, чтобы помочь вам спланировать идеальный отпуск. Спросите о направлениях, получите советы или найдите лучшие занятия для ваших интересов."
+      },
+      "features": {
+        "destinations": "Рекомендации по более чем 100+ направлениям по всему миру",
+        "languages": "Доступен на 5 языках: английском, немецком, украинском, русском и румынском",
+        "itineraries": "Персонализированные маршруты на основе ваших интересов и бюджета",
+        "availability": "Доступен 24/7, чтобы мгновенно отвечать на ваши вопросы"
+      },
+      "main_nav": {
+        "chat": "Чат с ассистентом",
+        "destinations": "Исследуйте направления",
+        "about": "О Alligator.tour"
+      },
+      "destinations": {
+        "bali": {
+          "name": "Бали, Индонезия",
+          "description": "Тропический рай с пляжами, храмами и рисовыми террасами",
+          "best_time": "Лучшее время: апрель - октябрь",
+          "explore": "Исследовать"
+        },
+        "barcelona": {
+          "name": "Барселона, Испания",
+          "description": "Потрясающая архитектура, средиземноморские пляжи и яркая культура",
+          "best_time": "Лучшее время: май - июнь",
+          "explore": "Исследовать"
+        },
+        "tokyo": {
+          "name": "Токио, Япония",
+          "description": "Сочетание ультрасовременного и традиционного с удивительной едой",
+          "best_time": "Лучшее время: март - май",
+          "explore": "Исследовать"
+        }
+      },
+      "cta": {
+        "title": "Готовы начать свое приключение?",
+        "description": "Позвольте нашим специалистам по путешествиям помочь вам спланировать идеальный отпуск с персонализированными рекомендациями",
+        "contact": "Связаться со специалистом",
+        "view_packages": "Посмотреть туры"
+      },
+      "welcome_message": "👋 Привет! Я ваш туристический ассистент Alligator.tour!\n\nЯ здесь, чтобы помочь вам спланировать замечательный отпуск.\n\n✨ Куда вы думаете поехать? Или если вы еще не уверены, я могу предложить фантастические направления на основе ваших интересов!"
+    },
+    "ro": {
+      "title": "Vorbește cu asistentul tău de călătorie",
+      "subtitle": "Întreabă-mă despre destinații, sfaturi de călătorie sau ajutor pentru planificarea următoarei tale aventuri!",
+      "input_placeholder": "Tastează întrebarea ta despre călătorie aici...",
+      "sidebar_title": "Descoperă următoarea ta aventură",
+      "popular_destinations": "Destinații în tendințe",
+      "destinations_description": "Explorează cele mai căutate destinații de călătorie ale noastre și începe să-ți planifici vacanța de vis",
+      "call_to_action": "Începe planificarea astăzi",
+      "chat_header": {
+        "title": "Asistentul de călătorie Alligator Tour",
+        "status": "Online | Gata să ajute"
+      },
+      "chat_intro": {
+        "title": "Consultare cu expertul nostru în călătorii",
+        "description": "Asistentul nostru de călătorie bazat pe AI este aici pentru a te ajuta să planifici vacanța perfectă. Întreabă despre destinații, primește sfaturi de călătorie sau găsește cele mai bune activități pentru interesele tale."
+      },
+      "features": {
+        "destinations": "Primește recomandări pentru peste 100+ destinații din întreaga lume",
+        "languages": "Disponibil în 5 limbi: engleză, germană, ucraineană, rusă și română",
+        "itineraries": "Obține itinerarii personalizate bazate pe interesele și bugetul tău",
+        "availability": "Disponibil 24/7 pentru a răspunde instantaneu la întrebările tale despre călătorii"
+      },
+      "main_nav": {
+        "chat": "Chat cu asistentul",
+        "destinations": "Explorează destinații",
+        "about": "Despre Alligator.tour"
+      },
+      "destinations": {
+        "bali": {
+          "name": "Bali, Indonezia",
+          "description": "Paradis tropical cu plaje, temple și terase de orez",
+          "best_time": "Perioada optimă: aprilie - octombrie",
+          "explore": "Explorează"
+        },
+        "barcelona": {
+          "name": "Barcelona, Spania",
+          "description": "Arhitectură uimitoare, plaje mediteraneene și cultură vibrantă",
+          "best_time": "Perioada optimă: mai - iunie",
+          "explore": "Explorează"
+        },
+        "tokyo": {
+          "name": "Tokyo, Japonia",
+          "description": "Amestec de ultramodern și tradițional cu mâncare uimitoare",
+          "best_time": "Perioada optimă: martie - mai",
+          "explore": "Explorează"
+        }
+      },
+      "cta": {
+        "title": "Ești gata să începi aventura ta?",
+        "description": "Permite specialiștilor noștri în călătorii să te ajute să planifici vacanța perfectă cu recomandări personalizate",
+        "contact": "Contactează un specialist",
+        "view_packages": "Vezi pachetele de călătorie"
+      },
+      "welcome_message": "👋 Salut! Sunt asistentul tău de călătorie Alligator.tour!\n\nSunt aici pentru a te ajuta să planifici o experiență de vacanță uimitoare.\n\n✨ Unde te gândești să călătorești? Sau dacă nu ești încă sigur, aș fi bucuros să îți sugerez câteva destinații fantastice bazate pe interesele tale!"
+    }
+  }

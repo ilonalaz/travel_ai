@@ -1,55 +1,43 @@
-import streamlit as st
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import os
 import openai
-import pandas as pd
-from datetime import datetime
+from dotenv import load_dotenv
+import re
 import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import re
+from datetime import datetime
+import uuid
+import uvicorn
 
+# Load environment variables
+load_dotenv()
 
-# Set page config first
-st.set_page_config(
-    page_title="Alligator.tour - Travel Assistant",
-    page_icon="🧳",
-    layout="wide"
+# Initialize FastAPI app
+app = FastAPI(title="Alligator.tour Travel Assistant")
+
+# Configure CORS to allow embedding in existing website
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your main website domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-import streamlit.components.v1 as components
 
-components.html("""
-    <head>
-        <meta property="og:title" content="Alligator.tour - Travel Assistant">
-        <meta property="og:description" content="Plan your perfect trip with our AI travel assistant">
-        <meta property="og:image" content="https://github.com/ilonalaz/travel_ai/blob/main/docs/logo.png">
-        <meta property="og:url" content="https://alligatortour.streamlit.app/">
-        <meta name="twitter:card" content="summary_large_image">
-    </head>
-""", height=0)
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
-# Keep your regular CSS styling
-st.markdown("""
-<style>
-/* Make the sidebar background white */
-[data-testid="stSidebar"] {
-    background-color: white;
-}
-
-/* Optional: Adjust text colors for better contrast on white background */
-[data-testid="stSidebar"] .stMarkdown {
-    color: #333333;
-}
-
-/* Make sure dropdown menus have good contrast */
-[data-testid="stSidebar"] .stSelectbox label {
-    color: #333333;
-}
-</style>
-""", unsafe_allow_html=True)
+# Initialize templates
+templates = Jinja2Templates(directory="templates")
 
 # Initialize OpenAI API
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Language support
 SUPPORTED_LANGUAGES = {
@@ -60,173 +48,262 @@ SUPPORTED_LANGUAGES = {
     "ro": "Romanian"
 }
 
-# Translations for UI elements
-UI_TRANSLATIONS = {
-    "en": {
-        "title": "Talk to your Travel Assistant 🌎",
-        "subtitle": "Ask me about destinations, travel tips, or help planning your next adventure!",
-        "input_placeholder": "Type your travel question here...",
-        "sidebar_title": "Your Ultimate Travel Companion",
-        "popular_destinations": "Popular Destinations",
-        "welcome_message": """👋 Hello! I'm your Alligator.tour travel assistant!
+# Default welcome messages for each language
+WELCOME_MESSAGES = {
+    "en": """👋 Hello! I'm your Alligator.tour travel assistant!
 
-I'm here to help you plan an amazing vacation experience. 
+I'm here to help you plan an amazing vacation experience.
 
-✨ Where are you thinking of traveling to? Or if you're not sure yet, I'd be happy to suggest some fantastic destinations based on your interests!"""
-    },
-    "de": {
-        "title": "Sprich mit deinem Reiseassistenten 🌎",
-        "subtitle": "Frag mich nach Reisezielen, Reisetipps oder Hilfe bei der Planung deines nächsten Abenteuers!",
-        "input_placeholder": "Gib deine Reisefrage hier ein...",
-        "sidebar_title": "Dein ultimativer Reisebegleiter",
-        "popular_destinations": "Beliebte Reiseziele",
-        "welcome_message": """👋 Hallo! Ich bin dein Alligator.tour Reiseassistent!
+✨ Where are you thinking of traveling to? Or if you're not sure yet, I'd be happy to suggest some fantastic destinations based on your interests!""",
+    "de": """👋 Hallo! Ich bin dein Alligator.tour Reiseassistent!
 
 Ich bin hier, um dir bei der Planung eines tollen Urlaubserlebnisses zu helfen.
 
-✨ Wohin möchtest du reisen? Oder wenn du dir noch nicht sicher bist, kann ich dir gerne einige fantastische Reiseziele basierend auf deinen Interessen vorschlagen!"""
-    },
-    "uk": {
-        "title": "Поговоріть зі своїм туристичним асистентом 🌎",
-        "subtitle": "Запитайте мене про напрямки, поради щодо подорожей або допомогу у плануванні вашої наступної пригоди!",
-        "input_placeholder": "Введіть своє питання про подорож тут...",
-        "sidebar_title": "Ваш ідеальний компаньйон для подорожей",
-        "popular_destinations": "Популярні напрямки",
-        "welcome_message": """👋 Привіт! Я ваш туристичний асистент Alligator.tour!
+✨ Wohin möchtest du reisen? Oder wenn du dir noch nicht sicher bist, kann ich dir gerne einige fantastische Reiseziele basierend auf deinen Interessen vorschlagen!""",
+    "uk": """👋 Привіт! Я ваш туристичний асистент Alligator.tour!
 
 Я тут, щоб допомогти вам спланувати чудову відпустку.
 
-✨ Куди ви думаєте поїхати? Або якщо ви ще не впевнені, я можу запропонувати фантастичні напрямки на основі ваших інтересів!"""
-    },
-    "ru": {
-        "title": "Поговорите со своим туристическим ассистентом 🌎",
-        "subtitle": "Спросите меня о направлениях, советах по путешествиям или помощи в планировании вашего следующего приключения!",
-        "input_placeholder": "Введите свой вопрос о путешествии здесь...",
-        "sidebar_title": "Ваш идеальный компаньон для путешествий",
-        "popular_destinations": "Популярные направления",
-        "welcome_message": """👋 Привет! Я ваш туристический ассистент Alligator.tour!
+✨ Куди ви думаєте поїхати? Або якщо ви ще не впевнені, я можу запропонувати фантастичні напрямки на основі ваших інтересів!""",
+    "ru": """👋 Привет! Я ваш туристический ассистент Alligator.tour!
 
 Я здесь, чтобы помочь вам спланировать замечательный отпуск.
 
-✨ Куда вы думаете поехать? Или если вы еще не уверены, я могу предложить фантастические направления на основе ваших интересов!"""
-    },
-    "ro": {
-        "title": "Vorbește cu asistentul tău de călătorie 🌎",
-        "subtitle": "Întreabă-mă despre destinații, sfaturi de călătorie sau ajutor pentru planificarea următoarei tale aventuri!",
-        "input_placeholder": "Tastează întrebarea ta despre călătorie aici...",
-        "sidebar_title": "Companionul tău ultim de călătorie",
-        "popular_destinations": "Destinații populare",
-        "welcome_message": """👋 Salut! Sunt asistentul tău de călătorie Alligator.tour!
+✨ Куда вы думаете поехать? Или если вы еще не уверены, я могу предложить фантастические направления на основе ваших интересов!""",
+    "ro": """👋 Salut! Sunt asistentul tău de călătorie Alligator.tour!
 
 Sunt aici pentru a te ajuta să planifici o experiență de vacanță uimitoare.
 
 ✨ Unde te gândești să călătorești? Sau dacă nu ești încă sigur, aș fi bucuros să îți sugerez câteva destinații fantastice bazate pe interesele tale!"""
-    }
 }
 
-# Initialize session state
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
+# Destination information in different languages
+DESTINATIONS = {
+    "en": [
+        {
+            "name": "Bali, Indonesia",
+            "description": "Tropical paradise with beaches, temples, and rice terraces",
+            "best_time": "April to October"
+        },
+        {
+            "name": "Barcelona, Spain",
+            "description": "Stunning architecture, Mediterranean beaches, and vibrant culture",
+            "best_time": "May to June, September to October"
+        },
+        {
+            "name": "Tokyo, Japan",
+            "description": "Blend of ultramodern and traditional with amazing food",
+            "best_time": "March to May, September to November"
+        }
+    ],
+    "de": [
+        {
+            "name": "Bali, Indonesien",
+            "description": "Tropisches Paradies mit Stränden, Tempeln und Reisterrassen",
+            "best_time": "April bis Oktober"
+        },
+        {
+            "name": "Barcelona, Spanien",
+            "description": "Atemberaubende Architektur, Mittelmeerstrände und lebendige Kultur",
+            "best_time": "Mai bis Juni, September bis Oktober"
+        },
+        {
+            "name": "Tokio, Japan",
+            "description": "Mischung aus ultramodern und traditionell mit erstaunlichem Essen",
+            "best_time": "März bis Mai, September bis November"
+        }
+    ],
+    "uk": [
+        {
+            "name": "Балі, Індонезія",
+            "description": "Тропічний рай з пляжами, храмами та рисовими терасами",
+            "best_time": "Квітень - Жовтень"
+        },
+        {
+            "name": "Барселона, Іспанія",
+            "description": "Вражаюча архітектура, середземноморські пляжі та яскрава культура",
+            "best_time": "Травень - Червень, Вересень - Жовтень"
+        },
+        {
+            "name": "Токіо, Японія",
+            "description": "Поєднання ультрасучасного і традиційного з дивовижною їжею",
+            "best_time": "Березень - Травень, Вересень - Листопад"
+        }
+    ],
+    "ru": [
+        {
+            "name": "Бали, Индонезия",
+            "description": "Тропический рай с пляжами, храмами и рисовыми террасами",
+            "best_time": "Апрель - Октябрь"
+        },
+        {
+            "name": "Барселона, Испания",
+            "description": "Потрясающая архитектура, средиземноморские пляжи и яркая культура",
+            "best_time": "Май - Июнь, Сентябрь - Октябрь"
+        },
+        {
+            "name": "Токио, Япония",
+            "description": "Сочетание ультрасовременного и традиционного с удивительной едой",
+            "best_time": "Март - Май, Сентябрь - Ноябрь"
+        }
+    ],
+    "ro": [
+        {
+            "name": "Bali, Indonezia",
+            "description": "Paradis tropical cu plaje, temple și terase de orez",
+            "best_time": "Aprilie - Octombrie"
+        },
+        {
+            "name": "Barcelona, Spania",
+            "description": "Arhitectură uimitoare, plaje mediteraneene și cultură vibrantă",
+            "best_time": "Mai - Iunie, Septembrie - Octombrie"
+        },
+        {
+            "name": "Tokyo, Japonia", 
+            "description": "Amestec de ultramodern și tradițional cu mâncare uimitoare",
+            "best_time": "Martie - Mai, Septembrie - Noiembrie"
+        }
+    ]
+}
 
-if 'user_info' not in st.session_state:
-    st.session_state.user_info = {
-        "name": "Not provided",  # Set a default value
-        "contact": None,
-        "destination": "Not specified",  # Set a default value
-        "travel_dates": None,
-        "interests": [],
-        "budget": None,
-        "language": "en"  # Default language is English
-    }
+# Pydantic models for request/response validation
+class ChatRequest(BaseModel):
+    message: str
+    lang: str = "en"
+    session_id: str = None
+    user_info: dict = None
 
-if 'contact_requested' not in st.session_state:
-    st.session_state.contact_requested = False
+class LanguageRequest(BaseModel):
+    lang: str
 
-if 'contact_saved' not in st.session_state:
-    st.session_state.contact_saved = False
-
-# Initialize with welcome message if no messages exist
-if len(st.session_state.messages) == 0:
-    lang = st.session_state.user_info["language"]
-    st.session_state.messages.append(
-        {"role": "assistant", "content": UI_TRANSLATIONS[lang]["welcome_message"]}
+# Routes
+@app.get("/", response_class=HTMLResponse)
+async def get_chat_interface(request: Request, lang: str = "uk"):
+    """Serve the chat interface page"""
+    if lang not in SUPPORTED_LANGUAGES:
+        lang = "uk"
+    
+    # Get the current year for the copyright notice
+    current_year = datetime.now().year
+    
+    # Load translations
+    try:
+        with open('static/translations.json', 'r', encoding='utf-8') as f:
+            translations = json.load(f)
+    except Exception as e:
+        print(f"Error loading translations: {e}")
+        translations = {}
+    
+    return templates.TemplateResponse(
+        "assistant.html",
+        {
+            "request": request,
+            "lang": lang,
+            "lang_name": SUPPORTED_LANGUAGES[lang],
+            "supported_languages": SUPPORTED_LANGUAGES,
+            "welcome_message": WELCOME_MESSAGES[lang],
+            "destinations": DESTINATIONS.get(lang, DESTINATIONS["en"]),
+            "current_year": current_year,
+            "translations": translations
+        }
     )
 
-# Language detection
-def detect_language(text):
-    """Detect the language of the input text using OpenAI"""
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a language detector. Output only a two-letter language code from this list: en, de, uk, ru, ro."},
-                {"role": "user", "content": f"Detect the language of this text and respond with only the language code: {text}"}
-            ],
-            temperature=0.1,
-            max_tokens=10
-        )
-        detected_lang = response.choices[0].message["content"].strip().lower()
+@app.post("/api/chat")
+async def chat(chat_request: ChatRequest):
+    """API endpoint for chat interactions"""
+    # Generate a session ID if none provided
+    session_id = chat_request.session_id or str(uuid.uuid4())
+    
+    # Extract travel info from message
+    travel_info = extract_travel_info(chat_request.message)
+    
+    # Extract contact info from message
+    contact_info = extract_email(chat_request.message) or extract_phone(chat_request.message)
+    if contact_info:
+        # Create a contact record
+        contact_data = {
+            "name": chat_request.user_info.get("name", "Not provided") if chat_request.user_info else "Not provided",
+            "contact": contact_info,
+            "destination": travel_info.get("destination", "Not specified"),
+            "interests": chat_request.user_info.get("interests", []) if chat_request.user_info else [],
+            "budget": chat_request.user_info.get("budget") if chat_request.user_info else None,
+            "language": chat_request.lang
+        }
         
-        # Make sure we have a supported language
-        if detected_lang in SUPPORTED_LANGUAGES:
-            return detected_lang
-        return "en"  # Default to English if detection fails
-    except Exception as e:
-        print(f"Error detecting language: {e}")
-        return "en"  # Default to English on error
+        # Save contact to sheet
+        save_contact_to_sheet(contact_data)
+    
+    # Get AI response
+    response = get_ai_response(
+        message=chat_request.message,
+        lang=chat_request.lang,
+        session_id=session_id,
+        user_info=chat_request.user_info
+    )
+    
+    return {
+        "response": response,
+        "session_id": session_id,
+        "contact_saved": bool(contact_info),
+        "detected_info": travel_info
+    }
 
-# Email extraction using regex
+@app.post("/api/language")
+async def change_language(language_request: LanguageRequest):
+    """API endpoint for changing language"""
+    lang = language_request.lang
+    if lang not in SUPPORTED_LANGUAGES:
+        lang = "en"
+    
+    return {
+        "success": True,
+        "lang": lang,
+        "welcome_message": WELCOME_MESSAGES[lang]
+    }
+
+# Helper functions
 def extract_email(message):
-    # More permissive email pattern that should work with any character set
+    """Extract email address from message"""
     email_pattern = r'[^\s@]+@[^\s@]+\.[^\s@]+'
     email_match = re.search(email_pattern, message)
     if email_match:
         email = email_match.group(0).strip(',.!?;:()')
-        print(f"Found email with permissive pattern: {email}")
+        print(f"Found email: {email}")
         return email
     return None
 
-# Helper function to extract travel information from messages
+def extract_phone(message):
+    """Extract phone number from message"""
+    # First try to find formatted phone numbers
+    phone_pattern = r'(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}'
+    phone_match = re.search(phone_pattern, message)
+    if phone_match:
+        return phone_match.group(0)
+    
+    # Look for any sequence of digits
+    digits_only = ''.join(c for c in message if c.isdigit())
+    if len(digits_only) >= 6:  # More permissive - any 6+ digit sequence
+        return digits_only
+    
+    return None
+
 def extract_travel_info(message):
-    message_lower = message.lower()
-    print(f"Extracting info from: {message}")
+    """Extract travel information from message"""
+    info = {
+        "destination": None
+    }
     
     # Extract destination
     countries = extract_countries(message)
     if countries:
-        st.session_state.user_info["destination"] = countries[0].capitalize()
+        info["destination"] = countries[0].capitalize()
         print(f"Set destination to: {countries[0].capitalize()}")
     
-    # Extract contact info - be more aggressive
-    # First check if it looks like just a phone number by itself
-    if not st.session_state.user_info["contact"] and message.strip().isdigit() and len(message.strip()) >= 6:
-        st.session_state.user_info["contact"] = message.strip()
-        print(f"Found raw phone number: {message.strip()}")
-        success = save_contact_to_sheet()
-        print(f"Save contact success: {success}")
-    else:
-        # Try to extract email
-        email = extract_email(message)
-        if email and not st.session_state.user_info["contact"]:
-            st.session_state.user_info["contact"] = email
-            print(f"Found email: {email}")
-            success = save_contact_to_sheet()
-            print(f"Save contact success: {success}")
-        else:
-            # Try to extract phone with better pattern matching
-            phone = extract_phone(message)
-            if phone and not st.session_state.user_info["contact"]:
-                st.session_state.user_info["contact"] = phone
-                print(f"Found phone: {phone}")
-                success = save_contact_to_sheet()
-                print(f"Save contact success: {success}")
-    
-    print(f"Updated user_info: {st.session_state.user_info}")
+    return info
 
-# Improved destinations extraction
 def extract_countries(message):
+    """Extract country names from message"""
     message_lower = message.lower()
-    print(f"Checking for destinations in: {message_lower}")
     
     # Add more destinations
     common_destinations = [
@@ -245,45 +322,11 @@ def extract_countries(message):
         "germany", "deutschland", "німеччина", "германия", "germania",
         "uk", "großbritannien", "великобританія", "великобритания", "marea britanie",
         "ireland", "irland", "ірландія", "ирландия", "irlanda",
-        "china", "china", "китай", "китай", "china",
-        "india", "indien", "індія", "индия", "india",
-        "morocco", "marokko", "марокко", "марокко", "maroc",
-        "south africa", "südafrika", "південна африка", "южная африка", "africa de sud",
-        "peru", "peru", "перу", "перу", "peru",
-        "argentina", "argentinien", "аргентина", "аргентина", "argentina",
-        "chile", "chile", "чилі", "чили", "chile",
-        "vietnam", "vietnam", "в'єтнам", "вьетнам", "vietnam",
-        "cambodia", "kambodscha", "камбоджа", "камбоджа", "cambodgia",
-        "singapore", "singapur", "сінгапур", "сингапур", "singapore",
-        "indonesia", "indonesien", "індонезія", "индонезия", "indonezia",
         "bali", "bali", "балі", "бали", "bali",
-        "iceland", "island", "ісландія", "исландия", "islanda",
-        "sweden", "schweden", "швеція", "швеция", "suedia",
-        "norway", "norwegen", "норвегія", "норвегия", "norvegia",
-        "denmark", "dänemark", "данія", "дания", "danemarca",
-        "netherlands", "niederlande", "нідерланди", "нидерланды", "țările de jos",
-        "portugal", "portugal", "португалія", "португалия", "portugalia",
-        "croatia", "kroatien", "хорватія", "хорватия", "croația",
-        "switzerland", "schweiz", "швейцарія", "швейцария", "elveția",
-        "austria", "österreich", "австрія", "австрия", "austria",
-        "new zealand", "neuseeland", "нова зеландія", "новая зеландия", "noua zeelandă",
-        "fiji", "fidschi", "фіджі", "фиджи", "fiji",
-        "costa rica", "costa rica", "коста-ріка", "коста-рика", "costa rica",
-        "usa", "usa", "сша", "сша", "sua",
-        "united states", "vereinigte staaten", "сполучені штати", "соединенные штаты", "statele unite",
-        "ukraine", "ukraine", "україна", "украина", "ucraina",
-        "dnipro", "dnipro", "дніпро", "днепр", "nipru",
         "kyiv", "kiew", "київ", "киев", "kiev",
-        "odessa", "odessa", "одеса", "одесса", "odesa",
-        "lviv", "lemberg", "львів", "львов", "liov",
-        # Add specific cities
-        "rome", "rom", "рим", "рим", "roma",
-        "paris", "paris", "париж", "париж", "paris",
-        "london", "london", "лондон", "лондон", "londra",
-        "tokyo", "tokio", "токіо", "токио", "tokyo",
         "barcelona", "barcelona", "барселона", "барселона", "barcelona",
-        "new york", "new york", "нью-йорк", "нью-йорк", "new york",
-        "los angeles", "los angeles", "лос-анджелес", "лос-анджелес", "los angeles"
+        "tokyo", "tokio", "токіо", "токио", "tokyo",
+        "santorini", "santorini", "санторіні", "санторини", "santorini",
     ]
     
     found_destinations = []
@@ -305,166 +348,53 @@ def extract_countries(message):
             
     return found_destinations
 
-# Improved phone extraction
-def extract_phone(message):
-    # First try to find formatted phone numbers
-    phone_pattern = r'(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}'
-    phone_match = re.search(phone_pattern, message)
-    if phone_match:
-        return phone_match.group(0)
-    
-    # Look for any sequence of digits
-    digits_only = ''.join(c for c in message if c.isdigit())
-    if len(digits_only) >= 6:  # More permissive - any 6+ digit sequence
-        return digits_only
-    
-    return None
-
-def save_contact_to_sheet():
-    """Function to save contact details to Google Sheets with enhanced debugging"""
-    if not st.session_state.user_info["contact"]:
-        print("No contact to save")
-        return False
-    
+def save_contact_to_sheet(contact_data):
+    """Save contact information to Google Sheets"""
     try:
-        # Ensure we have values for all fields
-        destination = st.session_state.user_info.get("destination")
-        if not destination or destination == "None":
-            # See if a destination is mentioned in the chat history
-            for msg in st.session_state.messages:
-                if msg["role"] == "assistant" and "trip to " in msg["content"]:
-                    parts = msg["content"].split("trip to ")
-                    if len(parts) > 1:
-                        potential_dest = parts[1].split("!")[0].strip()
-                        if potential_dest:
-                            destination = potential_dest
-                            print(f"Found destination from chat history: {destination}")
-                            st.session_state.user_info["destination"] = destination
-                            break
-        
-        # Always use default values to ensure something is saved
-        data = {
-            "name": st.session_state.user_info.get("name") or "Not provided",
-            "contact": st.session_state.user_info["contact"],
-            "destination": destination or "Not specified",
-            "interests": ", ".join(st.session_state.user_info.get("interests", [])) or "Not specified",
-            "budget": st.session_state.user_info.get("budget") or "Not specified",
-            "language": st.session_state.user_info.get("language") or "en",
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-        
-        print(f"Data to save: {data}")
-        
-        # Debugging: Print available secrets
-        print("Available secrets keys:", list(st.secrets.keys()))
-        
-        # Get Google credentials from Streamlit secrets
-        try:
-            google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-            print("Successfully retrieved Google credentials from secrets")
-            print("Credentials type:", type(google_creds))
-            # Don't print the whole credentials for security, but print part of it to confirm it's loaded
-            if isinstance(google_creds, dict):
-                print("Credentials keys:", list(google_creds.keys()))
-            else:
-                print("Credentials is not a dictionary, length:", len(str(google_creds)))
-        except Exception as e:
-            print(f"Error accessing Google credentials: {e}")
+        # Ensure we have a contact to save
+        if not contact_data.get("contact"):
+            print("No contact to save")
             return False
         
-        # Get Sheet ID
-        try:
-            sheet_id = st.secrets.get("SHEET_ID")
-            if not sheet_id:
-                sheet_id = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Fallback ID
-            print(f"Using sheet ID: {sheet_id}")
-        except Exception as e:
-            print(f"Error accessing Sheet ID: {e}")
-            sheet_id = "1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk"  # Fallback ID
-            print(f"Using fallback sheet ID: {sheet_id}")
+        print(f"Data to save: {contact_data}")
         
-        # Create a temporary credentials file
-        import tempfile
-        import json
+        # Try to use Google Sheets
+        creds_file = "google_credentials.json"
+        google_creds = os.getenv("GOOGLE_CREDENTIALS")
         
-        print("Creating temporary credentials file...")
-        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp:
-            if isinstance(google_creds, dict):
-                temp.write(json.dumps(google_creds).encode('utf-8'))
-            else:
-                # Try to parse as JSON if it's a string
-                try:
-                    # If it's a JSON string, parse it to ensure it's valid
-                    parsed = json.loads(google_creds)
-                    temp.write(json.dumps(parsed).encode('utf-8'))
-                except json.JSONDecodeError:
-                    # If it's not valid JSON, just write it as is - it might be already properly formatted
-                    temp.write(google_creds.encode('utf-8'))
-            
-            temp_path = temp.name
-            print(f"Created temporary file at: {temp_path}")
+        # Create credentials file from environment if it doesn't exist
+        if not os.path.exists(creds_file) and google_creds:
+            with open(creds_file, "w") as f:
+                f.write(google_creds)
         
-        try:
-            # Set up Google Sheets credentials using the temp file
-            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-            print("Setting up credentials...")
-            try:
-                credentials = ServiceAccountCredentials.from_json_keyfile_name(temp_path, scope)
-                print("Successfully created credentials from key file")
-            except Exception as cred_err:
-                print(f"Error creating credentials: {cred_err}")
-                # Show the beginning of the file content for debugging
-                with open(temp_path, 'r') as f:
-                    content = f.read()
-                    print(f"First 100 chars of credentials file: {content[:100]}...")
-                raise
-            
-            print("Authorizing with gspread...")
-            client = gspread.authorize(credentials)
-            print("Successfully authorized with gspread")
-            
-            # Open sheet by ID
-            print(f"Opening sheet with ID: {sheet_id}")
-            try:
-                sheet = client.open_by_key(sheet_id).sheet1
-                print("Successfully opened sheet")
-            except Exception as sheet_err:
-                print(f"Error opening sheet: {sheet_err}")
-                # Try listing available spreadsheets for debugging
-                try:
-                    available_sheets = client.list_spreadsheet_files()
-                    print(f"Available sheets: {[s['name'] for s in available_sheets[:5]]}")
-                except:
-                    print("Could not list available sheets")
-                raise
-            
-            # Add the row with all data
-            row_data = [
-                data["name"],
-                data["contact"],
-                data["destination"],
-                data["interests"],
-                data["budget"],
-                data["language"],
-                data["timestamp"]
-            ]
-            
-            print(f"Row data to append: {row_data}")
-            sheet.append_row(row_data)
-            print(f"Successfully saved contact data to Google Sheet")
-            
-            st.session_state.contact_saved = True
-            return True
-            
-        finally:
-            # Clean up the temp file
-            import os
-            try:
-                print(f"Cleaning up temporary file: {temp_path}")
-                os.unlink(temp_path)
-                print("Temporary file removed")
-            except Exception as e:
-                print(f"Error removing temporary file: {e}")
+        # Set up Google Sheets credentials
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(creds_file, scope)
+        client = gspread.authorize(credentials)
+        
+        # Get spreadsheet ID from URL
+        sheet_url = "https://docs.google.com/spreadsheets/d/1u0oWbOWXJaPwKfBXBrebc67s0PAz1tgCh7Og_Neaofk/edit?gid=0#gid=0"
+        sheet_id = sheet_url.split("/d/")[1].split("/")[0]
+        
+        # Open sheet and add row
+        sheet = client.open_by_key(sheet_id).sheet1
+        
+        # Add the row with all data
+        row_data = [
+            contact_data.get("name", "Not provided"),
+            contact_data.get("contact"),
+            contact_data.get("destination", "Not specified"),
+            ", ".join(contact_data.get("interests", [])) if isinstance(contact_data.get("interests"), list) else "Not specified",
+            contact_data.get("budget") or "Not specified",
+            contact_data.get("language") or "en",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ]
+        
+        print(f"Row data: {row_data}")
+        sheet.append_row(row_data)
+        print(f"Successfully saved contact data to Google Sheet")
+        
+        return True
         
     except Exception as e:
         print(f"Error saving to Google Sheet: {e}")
@@ -482,42 +412,51 @@ def save_contact_to_sheet():
                 if not file_exists:
                     writer.writerow(["Name", "Contact", "Destination", "Interests", "Budget", "Language", "Timestamp"])
                 writer.writerow([
-                    data["name"],
-                    data["contact"],
-                    data["destination"],
-                    data["interests"],
-                    data["budget"],
-                    data["language"],
-                    data["timestamp"]
+                    contact_data.get("name", "Not provided"),
+                    contact_data.get("contact"),
+                    contact_data.get("destination", "Not specified"),
+                    ", ".join(contact_data.get("interests", [])) if isinstance(contact_data.get("interests"), list) else "Not specified",
+                    contact_data.get("budget") or "Not specified",
+                    contact_data.get("language") or "en",
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 ])
             print(f"Saved to local CSV file: {fallback_file}")
-            st.session_state.contact_saved = True  # Mark as saved so we don't keep asking
             return True
         except Exception as csv_err:
             print(f"Error saving to CSV: {str(csv_err)}")
             return False
 
-def should_request_contact():
-    # Check if we've collected enough info and should ask for contact
-    if st.session_state.contact_requested or st.session_state.contact_saved:
-        return False
+def get_conversation_history(session_id):
+    """Get conversation history for a session or create new one"""
+    history_dir = "conversations"
+    os.makedirs(history_dir, exist_ok=True)
     
-    # Always request contact after a few messages, even if no destination yet
-    # This ensures we always collect contact info
-    if len(st.session_state.messages) >= 2 and not st.session_state.user_info["contact"]:
-        print("Setting contact_requested to True")
-        st.session_state.contact_requested = True
-        return True
+    history_file = f"{history_dir}/{session_id}.json"
     
-    return False
+    if os.path.exists(history_file):
+        try:
+            with open(history_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            # If file is corrupted, start fresh
+            return []
+    else:
+        return []
 
-def get_system_message():
-    # Get the user's current language
-    lang = st.session_state.user_info.get("language") or "en"
+def save_conversation_history(session_id, history):
+    """Save conversation history for a session"""
+    history_dir = "conversations"
+    os.makedirs(history_dir, exist_ok=True)
     
-    # Base message localized based on language
-    if lang == "en":
-        base_message = """You are a friendly and knowledgeable travel agent for Alligator.tour travel agency. 
+    history_file = f"{history_dir}/{session_id}.json"
+    
+    with open(history_file, 'w', encoding='utf-8') as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
+
+def get_system_message(lang='en'):
+    """Create system message based on language"""
+    base_messages = {
+        "en": """You are a friendly and knowledgeable travel agent for Alligator.tour travel agency. 
         Your goal is to help users plan their perfect international trip.
         
         IMPORTANT GUIDELINES:
@@ -553,9 +492,8 @@ def get_system_message():
            "Would you like a travel specialist to contact you with personalized recommendations for [DESTINATION]? If so, please share your email or phone number."
            
         IMPORTANT: The user is speaking in English. You must respond in English.
-        """
-    elif lang == "de":
-        base_message = """Du bist ein freundlicher und kenntnisreicher Reiseberater für die Alligator.tour Reiseagentur.
+        """,
+        "de": """Du bist ein freundlicher und kenntnisreicher Reiseberater für die Alligator.tour Reiseagentur.
         Dein Ziel ist es, Benutzern bei der Planung ihrer perfekten internationalen Reise zu helfen.
         
         WICHTIGE RICHTLINIEN:
@@ -591,9 +529,8 @@ def get_system_message():
            "Möchtest du, dass ein Reisespezialist dich mit personalisierten Empfehlungen für [REISEZIEL] kontaktiert? Wenn ja, teile bitte deine E-Mail-Adresse oder Telefonnummer mit."
            
         WICHTIG: Der Benutzer spricht Deutsch. Du musst auf Deutsch antworten.
-        """
-    elif lang == "uk":
-        base_message = """Ви дружелюбний та компетентний туристичний агент агентства Alligator.tour.
+        """,
+        "uk": """Ви дружелюбний та компетентний туристичний агент агентства Alligator.tour.
         Ваша мета - допомогти користувачам спланувати їхню ідеальну міжнародну подорож.
         
         ВАЖЛИВІ ВКАЗІВКИ:
@@ -629,349 +566,79 @@ def get_system_message():
            "Бажаєте, щоб фахівець з подорожей зв'язався з вами з персоналізованими рекомендаціями для [ПУНКТ ПРИЗНАЧЕННЯ]? Якщо так, будь ласка, поділіться своєю електронною поштою або номером телефону."
            
         ВАЖЛИВО: Користувач говорить українською. Ви повинні відповідати українською.
-        """
-    elif lang == "ru":
-        base_message = """Вы дружелюбный и знающий турагент агентства Alligator.tour.
-        Ваша цель - помочь пользователям спланировать их идеальное международное путешествие.
-        
-        ВАЖНЫЕ УКАЗАНИЯ:
-        
-        1. ВСЕГДА задавайте целевые вопросы, чтобы понять их потребности. Например: "Вы ищете релаксацию, приключения, культуру или семейное веселье?"
-        
-        2. После того, как они упомянут место назначения или проявят интерес, ПРЕДЛОЖИТЕ ВАРИАНТЫ ПОМОЩИ в таком формате:
-           
-           "Я буду рад помочь вам с поездкой в [МЕСТО НАЗНАЧЕНИЯ]! Что бы вы хотели узнать о?
-           
-           🗺️ Рекомендуемый маршрут
-           🧳 Советы по упаковке и важные документы
-           🏨 Предложения по проживанию
-           🍽️ Рекомендации местной кухни
-           🚶 Обязательные достопримечательности и развлечения
-           💡 Местные обычаи и советы для путешествий
-           💰 Советы по бюджету и экономии денег"
-        
-        3. Используйте много соответствующих эмодзи в своих ответах
-        
-        4. Разбивайте текст на небольшие, легкоусвояемые абзацы (максимум 2-3 предложения)
-        
-        5. При предоставлении информации используйте подзаголовки и маркеры
-        
-        6. Будьте энтузиастичны и разговорчивы
-        
-        7. ВСЕГДА задавайте дополнительные вопросы, чтобы лучше понять их потребности в конце ваших ответов
-        
-        8. Когда уместно, тонко поощряйте бронирование через Alligator.tour
-        
-        9. ОЧЕНЬ ВАЖНО: В конце ваших ответов (особенно после предоставления существенной информации о путешествии), запрашивайте контактную информацию пользователя следующим образом:
-        
-           "Хотели бы вы, чтобы специалист по путешествиям связался с вами с персонализированными рекомендациями для [МЕСТО НАЗНАЧЕНИЯ]? Если да, пожалуйста, поделитесь своей электронной почтой или номером телефона."
-           
-        ВАЖНО: Пользователь говорит на русском языке. Вы должны отвечать на русском.
-        """
-    elif lang == "ro":
-        base_message = """Ești un agent de turism prietenos și competent pentru agenția de turism Alligator.tour.
-        Scopul tău este să ajuți utilizatorii să-și planifice călătoria internațională perfectă.
-        
-        INDICAȚII IMPORTANTE:
-        
-        1. ÎNTOTDEAUNA pune întrebări specifice pentru a înțelege nevoile lor. De exemplu: "Cauți relaxare, aventură, cultură sau distracție pentru familie?"
-        
-        2. După ce menționează o destinație sau arată interes, OFERĂ OPȚIUNI DE AJUTOR în acest format:
-           
-           "Aș fi încântat să te ajut cu călătoria ta în [DESTINAȚIE]! Ce ai dori să știi despre?
-           
-           🗺️ Itinerar recomandat
-           🧳 Sfaturi de împachetare și documente importante
-           🏨 Sugestii de cazare
-           🍽️ Recomandări de bucătărie locală
-           🚶 Atracții și activități de neratat
-           💡 Obiceiuri locale și sfaturi de călătorie
-           💰 Sfaturi de buget și economisire a banilor"
-        
-        3. Folosește multe emoji-uri relevante în răspunsurile tale
-        
-        4. Împarte textul în paragrafe mici, ușor de citit (maximum 2-3 propoziții)
-        
-        5. Când oferi informații, folosește subtitluri și puncte
-        
-        6. Fii entuziast și conversațional
-        
-        7. ÎNTOTDEAUNA pune întrebări suplimentare pentru a înțelege mai bine nevoile lor la sfârșitul răspunsurilor tale
-        
-        8. Când este potrivit, încurajează subtil rezervarea prin Alligator.tour
-        
-        9. FOARTE IMPORTANT: La sfârșitul răspunsurilor tale (mai ales după ce ai oferit informații substanțiale despre călătorie), cere informațiile de contact ale utilizatorului astfel:
-        
-           "Ai dori ca un specialist în călătorii să te contacteze cu recomandări personalizate pentru [DESTINAȚIE]? Dacă da, te rog să împărtășești adresa ta de email sau numărul tău de telefon."
-           
-        IMPORTANT: Utilizatorul vorbește în română. Trebuie să răspunzi în română.
-        """
+        """,
+        # Include other languages here
+    }
     
-    # Add contact collection if needed
-    if should_request_contact():
-        # Localized contact request based on language
-        if lang == "en":
-            contact_request = """
-            The user has been engaged in conversation for a while. You MUST include a polite request for their 
-            contact information (email or phone) at the end of your response, like this:
-            
-            "📝 To provide you with personalized travel recommendations, could you please share your email address or phone number?"
-            
-            This is VERY IMPORTANT. Do NOT forget to include this.
-            """
-        elif lang == "de":
-            contact_request = """
-            Der Benutzer ist seit einiger Zeit im Gespräch. Du MUSST am Ende deiner Antwort eine höfliche Anfrage nach seinen 
-            Kontaktinformationen (E-Mail oder Telefon) einfügen, wie folgt:
-            
-            "📝 Um dir personalisierte Reiseempfehlungen geben zu können, könntest du bitte deine E-Mail-Adresse oder Telefonnummer mitteilen?"
-            
-            Dies ist SEHR WICHTIG. Vergiss NICHT, dies einzufügen.
-            """
-        elif lang == "uk":
-            contact_request = """
-            Користувач бере участь у розмові вже деякий час. Ви ПОВИННІ включити ввічливий запит їхньої 
-            контактної інформації (електронна пошта або телефон) наприкінці вашої відповіді, наприклад:
-            
-            "📝 Щоб надати вам персоналізовані рекомендації щодо подорожей, чи не могли б ви поділитися своєю електронною поштою або номером телефону?"
-            
-            Це ДУЖЕ ВАЖЛИВО. НЕ забудьте включити це.
-            """
-        elif lang == "ru":
-            contact_request = """
-            Пользователь участвует в разговоре уже некоторое время. Вы ДОЛЖНЫ включить вежливый запрос их 
-            контактной информации (электронная почта или телефон) в конце вашего ответа, например:
-            
-            "📝 Чтобы предоставить вам персонализированные рекомендации по путешествиям, не могли бы вы поделиться своей электронной почтой или номером телефона?"
-            
-            Это ОЧЕНЬ ВАЖНО. НЕ забудьте включить это.
-            """
-        elif lang == "ro":
-            contact_request = """
-            Utilizatorul a fost implicat în conversație de ceva timp. TREBUIE să incluzi o solicitare politicoasă pentru 
-            informațiile lor de contact (email sau telefon) la sfârșitul răspunsului tău, astfel:
-            
-            "📝 Pentru a-ți oferi recomandări de călătorie personalizate, ai putea să-mi împărtășești adresa ta de email sau numărul tău de telefon?"
-            
-            Acest lucru este FOARTE IMPORTANT. NU uita să incluzi acest lucru.
-            """
-        
-        base_message += contact_request
-    
-    # Add current user info context
-    base_message += f"\nCurrent user information: {st.session_state.user_info}"
-    
-    return base_message
+    # Use English as default if language not supported
+    return base_messages.get(lang, base_messages["en"])
 
-def get_response(prompt):
-    # Get current language
-    lang = st.session_state.user_info.get("language") or "en"
-    
-    # Prepare the conversation history for the API call
-    messages = [{"role": "system", "content": get_system_message()}]
-    
-    # Add conversation history (excluding system messages)
-    for msg in st.session_state.messages:
-        messages.append({"role": msg["role"], "content": msg["content"]})
-    
-    # Add the current prompt
-    messages.append({"role": "user", "content": prompt})
-    
+def get_ai_response(message, lang='en', session_id='default', user_info=None):
+    """Get response from OpenAI API"""
     try:
-        # Call the OpenAI API
+        # Load conversation history from session or initialize new one
+        conversation_history = get_conversation_history(session_id)
+        
+        # Create system message based on language
+        system_message = get_system_message(lang)
+        
+        # Prepare messages for API call
+        messages = [{"role": "system", "content": system_message}]
+        
+        # Add conversation history
+        for msg in conversation_history:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+        
+        # Add user message
+        messages.append({"role": "user", "content": message})
+        
+        # Add user info context if available
+        if user_info:
+            context = f"\nCurrent user information: {json.dumps(user_info)}"
+            messages[-1]["content"] += context
+        
+        # Call OpenAI API
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages,
             temperature=0.7,
-            max_tokens=800  # Increased for multilingual responses
+            max_tokens=800
         )
         
         response_content = response.choices[0].message["content"]
         
-        # Make sure there's a question in the response
-        if "?" not in response_content:
-            # Add a generic follow-up question based on language
-            if lang == "en":
-                question = "\n\n✨ What else would you like to know about your travel plans? Do you have any specific interests or preferences for your trip?"
-            elif lang == "de":
-                question = "\n\n✨ Was möchtest du sonst noch über deine Reisepläne wissen? Hast du bestimmte Interessen oder Vorlieben für deine Reise?"
-            elif lang == "uk":
-                question = "\n\n✨ Що ще ви хотіли б дізнатися про ваші плани подорожі? У вас є якісь конкретні інтереси чи уподобання для вашої поїздки?"
-            elif lang == "ru":
-                question = "\n\n✨ Что еще вы хотели бы узнать о ваших планах путешествия? У вас есть какие-то конкретные интересы или предпочтения для вашей поездки?"
-            elif lang == "ro":
-                question = "\n\n✨ Ce altceva ai dori să știi despre planurile tale de călătorie? Ai interese sau preferințe specifice pentru călătoria ta?"
-            else:
-                question = "\n\n✨ What else would you like to know about your travel plans?"
-                
-            response_content += question
-        
-        # If contact request is needed but missing, add it
-        if should_request_contact():
-            # Check if there's already a contact request in the response
-            contact_phrases = {
-                "en": "email or phone",
-                "de": "e-mail oder telefon",
-                "uk": "електронн",
-                "ru": "электронн",
-                "ro": "email sau telefon"
-            }
-            
-            if contact_phrases[lang].lower() not in response_content.lower():
-                # Add language-specific contact request
-                destination = st.session_state.user_info["destination"] or "your trip"
-                
-                if lang == "en":
-                    contact_request = f"\n\n📝 To provide you with personalized recommendations for {destination}, could you please share your email address or phone number?"
-                elif lang == "de":
-                    contact_request = f"\n\n📝 Um dir personalisierte Empfehlungen für {destination} geben zu können, könntest du bitte deine E-Mail-Adresse oder Telefonnummer mitteilen?"
-                elif lang == "uk":
-                    contact_request = f"\n\n📝 Щоб надати вам персоналізовані рекомендації щодо {destination}, чи не могли б ви поділитися своєю електронною поштою або номером телефону?"
-                elif lang == "ru":
-                    contact_request = f"\n\n📝 Чтобы предоставить вам персонализированные рекомендации по {destination}, не могли бы вы поделиться своей электронной почтой или номером телефона?"
-                elif lang == "ro":
-                    contact_request = f"\n\n📝 Pentru a-ți oferi recomandări personalizate pentru {destination}, ai putea să-mi împărtășești adresa ta de email sau numărul tău de telefon?"
-                
-                response_content += contact_request
+        # Save conversation
+        conversation_history.append({"role": "user", "content": message})
+        conversation_history.append({"role": "assistant", "content": response_content})
+        save_conversation_history(session_id, conversation_history)
         
         return response_content
     except Exception as e:
-        # Error message in appropriate language
-        if lang == "en":
-            return f"I'm having trouble connecting to our travel database. Please try again or contact Alligator.tour directly. Error: {str(e)}"
-        elif lang == "de":
-            return f"Ich habe Probleme, eine Verbindung zu unserer Reisedatenbank herzustellen. Bitte versuche es erneut oder kontaktiere Alligator.tour direkt. Fehler: {str(e)}"
-        elif lang == "uk":
-            return f"У мене виникли проблеми з підключенням до нашої бази даних подорожей. Будь ласка, спробуйте ще раз або зверніться безпосередньо до Alligator.tour. Помилка: {str(e)}"
-        elif lang == "ru":
-            return f"У меня возникли проблемы с подключением к нашей базе данных путешествий. Пожалуйста, попробуйте еще раз или обратитесь напрямую в Alligator.tour. Ошибка: {str(e)}"
-        elif lang == "ro":
-            return f"Am probleme cu conectarea la baza noastră de date de călătorie. Te rog să încerci din nou sau să contactezi Alligator.tour direct. Eroare: {str(e)}"
-        else:
-            return f"Error: {str(e)}"
-
-# Language selector for the sidebar
-def language_selector():
-    lang = st.session_state.user_info.get("language") or "en"
-    
-    # Labels for each language in its own language
-    language_labels = {
-        "en": "English",
-        "de": "Deutsch",
-        "uk": "Українська",
-        "ru": "Русский",
-        "ro": "Română"
-    }
-    
-    selected_lang = st.sidebar.selectbox(
-        "Language / Sprache / Мова / Язык / Limbă",
-        options=list(SUPPORTED_LANGUAGES.keys()),
-        format_func=lambda x: language_labels[x],
-        index=list(SUPPORTED_LANGUAGES.keys()).index(lang)
-    )
-    
-    # Update language if changed
-    if selected_lang != lang:
-        st.session_state.user_info["language"] = selected_lang
-        # Add a system message about language change
-        if len(st.session_state.messages) > 0:
-            # Clear existing messages except the first welcome message
-            welcome_msg = st.session_state.messages[0]
-            st.session_state.messages = [
-                {"role": "assistant", "content": UI_TRANSLATIONS[selected_lang]["welcome_message"]}
-            ]
-        st.rerun() 
-# Sidebar
-with st.sidebar:
-    try:
-        st.image("logo.png", width=200)
-    except:
-        st.title("🐊 Alligator.tour")
-
-    # Add language selector
-    language_selector()
-
-    # Current language
-    lang = st.session_state.user_info.get("language") or "en"
-
-    st.markdown(f"### {UI_TRANSLATIONS[lang]['sidebar_title']}")
-    st.markdown("---")
-
-    # 🔹 Add Travel Agency Links
-    st.markdown("### 🌍 Connect with Alligator.tour")
-    st.markdown("[🌐 Visit our Website](https://www.alligatortour.de/)", unsafe_allow_html=True)
-    st.markdown("[📷 Instagram (Germany)](https://www.instagram.com/alligatortour.deutschland)", unsafe_allow_html=True)
-    st.markdown("[📷 Instagram (Ukraine)](https://www.instagram.com/alligatortour/)", unsafe_allow_html=True)
-
-    # Popular destinations
-    st.markdown(f"## {UI_TRANSLATIONS[lang]['popular_destinations']}")
-
-    destinations = [
-        {
-            "name": "Bali, Indonesia",
-            "image": "bali.png",
-            "desc": "Tropical paradise with beaches, temples, and rice terraces"
-        },
-        {
-            "name": "Barcelona, Spain",
-            "image": "barcelona.png",
-            "desc": "Stunning architecture, Mediterranean beaches, and vibrant culture"
-        },
-        {
-            "name": "Tokyo, Japan",
-            "image": "tokyo.png",
-            "desc": "Blend of ultramodern and traditional with amazing food"
+        # Provide error message in appropriate language
+        error_messages = {
+            "en": f"I'm having trouble connecting. Please try again later. Error: {str(e)}",
+            "de": f"Ich habe Verbindungsprobleme. Bitte versuchen Sie es später noch einmal. Fehler: {str(e)}",
+            "uk": f"У мене виникли проблеми з підключенням. Будь ласка, спробуйте пізніше. Помилка: {str(e)}",
+            "ru": f"У меня возникли проблемы с подключением. Пожалуйста, повторите попытку позже. Ошибка: {str(e)}",
+            "ro": f"Am probleme cu conectarea. Vă rugăm să încercați din nou mai târziu. Eroare: {str(e)}"
         }
-    ]
+        return error_messages.get(lang, error_messages["en"])
 
-    # Use Streamlit's native image display rather than HTML
-    for dest in destinations:
-        st.markdown(f"### {dest['name']}")
-        try:
-            st.image(dest['image'], use_container_width=True)
-            st.markdown(dest['desc'])
-        except Exception as e:
-            st.error(f"Could not load image: {e}")
-            st.markdown(dest['desc'])
+# Ensure required directories exist
+os.makedirs("static", exist_ok=True)
+os.makedirs("static/css", exist_ok=True)
+os.makedirs("static/js", exist_ok=True)
+os.makedirs("static/images", exist_ok=True)
+os.makedirs("templates", exist_ok=True)
+os.makedirs("conversations", exist_ok=True)
 
-
-# Main content - use translated UI elements
-lang = st.session_state.user_info.get("language") or "en"
-st.title(UI_TRANSLATIONS[lang]["title"])
-st.markdown(UI_TRANSLATIONS[lang]["subtitle"])
-
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
-
-# Get user input
-user_input = st.chat_input(UI_TRANSLATIONS[lang]["input_placeholder"])
-
-# Process user input
-if user_input:
-    # Detect language ONLY on the first user message
-    if len(st.session_state.messages) == 1:  # Only the initial welcome message exists
-        detected_lang = detect_language(user_input)
-        if detected_lang != st.session_state.user_info.get("language"):
-            st.session_state.user_info["language"] = detected_lang
-            print(f"Initial language detection: {detected_lang}")
+# Main entry point
+if __name__ == "__main__":
+    # Set port from environment variable or default to 8000
+    port = int(os.getenv("PORT", 8000))
     
-    # Add user message to chat
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    # Set host from environment variable or default to 0.0.0.0
+    host = os.getenv("HOST", "0.0.0.0")
     
-    # Display user message
-    with st.chat_message("user"):
-        st.write(user_input)
-    
-    # Extract information from user message
-    extract_travel_info(user_input)
-    
-    # Display assistant response
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            response = get_response(user_input)
-            st.write(response)
-    
-    # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    # Run the FastAPI app using uvicorn
+    uvicorn.run("app:app", host=host, port=port, reload=True)
